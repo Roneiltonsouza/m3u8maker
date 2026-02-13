@@ -1,271 +1,184 @@
-#!/usr/bin/python3
-# -*- encoding: utf-8-*-
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FLIXSIM | IPTV & Cinema</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        :root {
+            --preto: #0e0e0e;
+            --branco: #ffffff;
+            --vermelho: #ff0000;
+            --laranja: #ff4500;
+            --cinza: #2a2a2a;
+        }
 
-from tkinter.ttk import *
-from tkinter.scrolledtext import *
-from tkinter.messagebox import *
-from tkinter.filedialog import *
-from tkinter import *
-from urllib.request import urlopen
-from threading import Thread
-import os
-import sys
-import subprocess
-import webbrowser
-import locale
-import gettext
+        body {
+            background-color: var(--preto);
+            color: var(--branco);
+            font-family: 'Arial Black', sans-serif;
+            margin: 0;
+            padding-bottom: 50px;
+        }
 
-__version__ = 0.1
+        header { padding: 40px 20px; text-align: center; position: relative; }
 
-appName = 'm3u8maker'
-dirLocation = os.path.join(os.path.realpath('locale'))
+        .flixsim-logo {
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            background: linear-gradient(to right, var(--vermelho), var(--laranja));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0px 4px 10px rgba(255, 0, 0, 0.5));
+            display: inline-block;
+            font-style: italic;
+        }
 
-locale.bindtextdomain(appName, dirLocation)
-locale.textdomain(appName)
+        .container { padding: 0 20px; font-family: 'Arial', sans-serif; }
 
-gettext.bindtextdomain(appName, dirLocation)
-gettext.textdomain(appName)
-_ = gettext.gettext
+        /* Abas Estilizadas */
+        .tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { 
+            background: #1a1a1a; border: 1px solid #333; color: white; 
+            padding: 12px 15px; cursor: pointer; border-radius: 8px;
+            transition: 0.3s; font-weight: bold; font-size: 13px;
+        }
+        .tab-btn.active { background: var(--vermelho); border-color: var(--vermelho); box-shadow: 0 0 15px rgba(255,0,0,0.4); }
 
-groupTitles = [_('FREE CHANNELS'), _('MOVIE CHANNELS'), _('SPORTS CHANNELS'), _('KID CHANNELS'), _('VARIETIES')]
+        .content { display: none; padding: 20px; background: #1a1a1a; border-radius: 15px; animation: fadeIn 0.4s; }
+        .content.active { display: block; }
 
-pid = os.getpid()
-pidFile = '/tmp/m3u8maker'
-if not os.path.isfile(pidFile):
-    os.system(f'touch {pidFile}')
-    os.system(f'echo {pid} >> {pidFile}')
-else:
-    sys.exit(-1)
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-global openFileName
-openFileName = False
+        /* Configurações IPTV */
+        .iptv-form { background: var(--cinza); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .iptv-form input { width: 100%; padding: 15px; margin-bottom: 10px; border-radius: 5px; border: none; background: #000; color: #fff; }
+        .iptv-form button { width: 100%; padding: 15px; background: #25d366; color: white; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; }
 
+        /* Player de Vídeo Estilo Netflix */
+        #videoContainer { width: 100%; max-width: 800px; margin: 20px auto; background: #000; border-radius: 10px; overflow: hidden; border: 2px solid var(--vermelho); display: none; }
+        video { width: 100%; display: block; }
 
-# Checks if there's a new software's version
-def checkUpdates(event=None):
-    window.unbind('<Enter>')
-    linux_version = urlopen('https://www.dropbox.com/s/orvmo3ltilpodsb/m3u8Maker_Linux_Version.txt?dl=true').read()
-    if float(linux_version) > float(__version__):
-        subprocess.call(['notify-send', _("There's a new software version avaible to download.\nDownload it now?")])
-        question = askyesno(title='Status',
-                            message=_("There's a new software version avaible to download.\nDownload it now?"))
-        if question == YES:
-            webbrowser.open('https://github.com/Alexsussa/m3u8maker/releases')
-        else:
-            window.update()
-            window.after(1800000, checkUpdates)
+        /* Grid de Postagem */
+        .post-form { background: var(--cinza); padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .post-form input, .post-form button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 5px; border: none; }
+        .post-form button { background: var(--vermelho); color: white; font-weight: bold; }
+        
+        .feed { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .movie-card { background: #000; border-radius: 8px; overflow: hidden; border: 1px solid #333; }
+        .movie-card img { width: 100%; height: 200px; object-fit: cover; }
+        .movie-card h4 { font-size: 0.8em; padding: 8px; text-align: center; margin: 0; }
+    </style>
+</head>
+<body>
 
+    <header>
+        <h1 class="flixsim-logo">Flixsim</h1>
+    </header>
 
-class M3u8Maker:
-    def __init__(self, master=None):
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="openTab(event, 'comunidade')"><i class="fas fa-users"></i> Feed</button>
+            <button class="tab-btn" onclick="openTab(event, 'iptv_tab')"><i class="fas fa-tv"></i> Configurar IPTV</button>
+            <button class="tab-btn" onclick="openTab(event, 'suporte')"><i class="fab fa-whatsapp"></i> Suporte</button>
+        </div>
 
-        self.c1 = Frame(master)
-        self.c1['pady'] = 10
-        self.c1['padx'] = 5
-        self.c1.pack()
+        <div id="iptv_tab" class="content">
+            <div class="iptv-form">
+                <h3><i class="fas fa-signal"></i> Adicionar Lista/Filme</h3>
+                <p style="font-size: 12px; color: #bbb;">Cole abaixo a URL do canal ou filme (m3u8, mp4)</p>
+                <input type="text" id="iptvUrl" placeholder="Ex: https://servidor.com/filme.m3u8">
+                <button onclick="playIPTV()">CARREGAR NO PLAYER</button>
+            </div>
 
-        self.c2 = Frame(master)
-        self.c2.pack()
+            <div id="videoContainer">
+                <video id="videoPlayer" controls></video>
+                <div style="padding: 10px; font-size: 12px; text-align: center; background: #111;">
+                    Modo Ultra-Smooth Ativado (Software HLS)
+                </div>
+            </div>
+        </div>
 
-        self.c3 = Frame(master)
-        self.c3.pack()
+        <div id="comunidade" class="content active">
+            <div class="post-form">
+                <input type="text" id="movieTitle" placeholder="Título do Filme">
+                <input type="file" id="movieImage" accept="image/*">
+                <button onclick="addPost()">PUBLICAR NA GALERIA</button>
+            </div>
+            <div id="movieFeed" class="feed"></div>
+        </div>
 
-        self.c4 = Frame(master)
-        self.c4.pack()
+        <div id="suporte" class="content">
+            <div style="text-align: center;">
+                <h2>Precisa de ajuda?</h2>
+                <a href="https://whatz.app/rdg" style="background:#25d366; color:white; padding:15px 30px; text-decoration:none; border-radius:30px; display:inline-block; font-weight:bold;">
+                    CHAMAR NO WHATSAPP
+                </a>
+            </div>
+        </div>
+    </div>
 
-        self.c5 = Frame(master)
-        self.c5.pack()
+    <script>
+        // Função para alternar abas
+        function openTab(evt, tabName) {
+            var i, content, tabbtn;
+            content = document.getElementsByClassName("content");
+            for (i = 0; i < content.length; i++) content[i].style.display = "none";
+            tabbtn = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tabbtn.length; i++) tabbtn[i].classList.remove("active");
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.classList.add("active");
+        }
 
-        windowMenu = Menu(window)
+        // Software de Reprodução (HLS) para não travar
+        function playIPTV() {
+            const url = document.getElementById('iptvUrl').value;
+            const video = document.getElementById('videoPlayer');
+            const container = document.getElementById('videoContainer');
 
-        file = Menu(windowMenu, tearoff=0)
-        windowMenu.add_cascade(label=_('File'), menu=file)
-        file.add_command(label=_('New File'), accelerator='Ctrl+N', command=lambda: self.newFile())
-        file.add_command(label=_('Open File...'), accelerator='Ctrl+O', command=lambda: self.openFile())
-        file.add_command(label=_('Save'), accelerator='Ctrl+S', command=lambda: self.save())
-        file.add_command(label=_('Save As...'), accelerator='Shift+Ctrl+S', command=lambda: self.saveAs())
-        file.add_separator()
-        file.add_command(label=_('Quit'), accelerator='Ctrl+Q', command=window.destroy)
+            if (!url) return alert("Insira uma URL válida!");
+            
+            container.style.display = "block";
 
-        help = Menu(windowMenu, tearoff=0)
-        windowMenu.add_cascade(label=_('Help'), menu=help)
-        help.add_command(label=_('Check updates...'), accelerator='Alt+A',
-                         command=lambda: Thread(target=checkUpdates).start())
-        help.add_separator()
-        help.add_command(label=_('About'), accelerator='Ctrl+H', command=self.about)
+            if (Hls.isSupported()) {
+                const hls = new Hls({
+                    capLevelToPlayerSize: true,
+                    progressive: true,
+                });
+                hls.loadSource(url);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    video.play();
+                });
+            } 
+            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = url;
+                video.addEventListener('loadedmetadata', function() {
+                    video.play();
+                });
+            }
+        }
 
-        window.config(menu=windowMenu)
+        // Postagem na Galeria
+        function addPost() {
+            const title = document.getElementById('movieTitle').value;
+            const imageInput = document.getElementById('movieImage');
+            const feed = document.getElementById('movieFeed');
 
-        self.menuMouse = Menu(window, tearoff=0)
-        self.menuMouse.add_command(label=_('Cut'))
-        self.menuMouse.add_command(label=_('Copy'))
-        self.menuMouse.add_command(label=_('Paste'))
+            if (!title || imageInput.files.length === 0) return alert("Preencha tudo!");
 
-        self.lbID = Label(self.c1, text=_('CHANNEL ID'), fg='black')
-        self.lbID.pack(side=LEFT, padx=2)
-        self.txtID = Entry(self.c1, width=15, bg='white', fg='black', selectbackground='blue', selectforeground='white')
-        self.txtID.pack(side=LEFT, padx=3)
-
-        self.lbChannel = Label(self.c1, text=_('CHANNEL NAME'), fg='black')
-        self.lbChannel.pack(side=LEFT, padx=3)
-        self.txtChannel = Entry(self.c1, bg='white', fg='black', width=25, selectbackground='blue',
-                                selectforeground='white')
-        self.txtChannel.pack(side=LEFT, padx=3)
-
-        self.lbUrl = Label(self.c1, text=_('URL CHANNEL'), fg='black')
-        self.lbUrl.pack(side=LEFT, padx=3)
-        self.txtUrl = Entry(self.c1, bg='white', fg='black', width=40, selectbackground='blue',
-                            selectforeground='white')
-        self.txtUrl.pack(side=LEFT, padx=3)
-
-        self.lbLogo = Label(self.c2, text=_('LOGO URL'), fg='black')
-        self.lbLogo.pack(side=LEFT, padx=3)
-        self.txtLogo = Entry(self.c2, bg='white', fg='black', width=30, selectbackground='blue',
-                             selectforeground='white')
-        self.txtLogo.pack(side=LEFT, padx=3)
-
-        self.lbGroup = Label(self.c2, text=_('CHANNELS GROUP'), fg='black')
-        self.lbGroup.pack(side=LEFT, padx=3)
-        self.txtGroup = Combobox(self.c2, background='white', foreground='black', values=groupTitles, width=25,
-                                 state='readonly')
-        self.txtGroup.pack(side=LEFT, padx=3)
-
-        self.btnAddInfo = Button(self.c2, text=_('ADD INFO'), command=lambda: self.addInfo(), fg='black')
-        self.btnAddInfo.pack(side=LEFT, padx=3)
-
-        self.info = ScrolledText(self.c3, width=120, height=30, bg='white', fg='black', selectbackground='blue',
-                                 selectforeground='white', undo=True)
-        self.info.pack(pady=5)
-
-        # keyboard shortcuts (binds)
-        window.bind('<Button-3><ButtonRelease-3>', self.mousePopup)
-        window.bind('<Control-n>', self.newFile)
-        window.bind('<Control-N>', self.newFile)
-        window.bind('<Control-o>', self.openFile)
-        window.bind('<Control-O>', self.openFile)
-        window.bind('<Control-s>', self.save)
-        window.bind('<Control-S>', self.save)
-        window.bind('<Control-Shift-s>', self.saveAs)
-        window.bind('<Control-Shift-S>', self.saveAs)
-        window.bind('<Control-q>', self.windowDestroy)
-        window.bind('<Control-Q>', self.windowDestroy)
-        window.bind('<Control-h>', self.about)
-        window.bind('<Control-H>', self.about)
-        window.bind('<Alt-a>', checkUpdates)
-        window.bind('<Alt-A>', checkUpdates)
-        window.bind('<Enter>', Thread(target=checkUpdates).start())
-        window.bind_class('Text', '<Control-a>', self.selectAll)
-        window.bind_class('Text', '<Control-A>', self.selectAll)
-
-        # styles for Combobox
-        style = Style()
-        style.map('TCombobox', selectbackground=[('readonly', 'blue')])
-        style.map('TCombobox', fieldbackground=[('readonly', 'white')])
-
-    def selectAll(self, event):
-        event.widget.tag_add('sel', '1.0', 'end')
-        return 'break'
-
-    def newFile(self, event=None):
-        self.info.delete(1.0, END)
-        self.info.insert(INSERT, '#EXTM3U')
-
-    def openFile(self, event=None):
-        searchList = askopenfilename(title=_('M3U, M3U8 Files'), filetypes=[(_('IPTV List'), '*.m3u *.m3u8')],
-                                     initialdir='~/')
-        if searchList:
-            global openFileName
-            openFileName = searchList
-            openList = open(searchList)
-            readlist = openList.read()
-            self.info.delete(1.0, END)
-            self.info.insert(INSERT, readlist)
-
-    def save(self, event=None):
-        info = self.info.get(1.0, END)
-        global openFileName
-        if openFileName:
-            save = open(openFileName, 'w')
-            save.writelines(info)
-            save.close()
-            # showinfo(title=_('Status'), message=_('Create a new file by selecting File > New File'))
-        else:
-            self.saveAs()
-
-    def saveAs(self, event=None):
-        info = self.info.get(1.0, END)
-        saveFileAs = asksaveasfile(mode='w', title=_('Save As'), filetypes=[(_('IPTV List'), '*.m3u *.m3u8')], initialdir='~/', defaultextension='*.m3u8')
-        if saveFileAs:
-            saveFileAs.writelines(info)
-            saveFileAs.close()
-
-    def addInfo(self):
-        idTxt = self.txtID.get()
-        logo = self.txtLogo.get()
-        group = self.txtGroup.get()
-        channel = self.txtChannel.get()
-        url = self.txtUrl.get()
-        if channel == '' or url == '':
-            showerror(title=_('Warning'), message=_('Channel Name and Channel URL cannot be empty'))
-        else:
-            line = f'\n\n#EXTINF:-1 tvg-id="{idTxt}" tvg-logo="{logo}" group-title="{group}", {channel}\n{url}'
-            self.info.tag_configure('warning', foreground='blue')
-            self.info.insert(END, line, 'warning')
-            self.txtID.delete(0, END)
-            self.txtLogo.delete(0, END)
-            self.txtGroup.delete(0, END)
-            self.txtChannel.delete(0, END)
-            self.txtUrl.delete(0, END)
-
-    def mousePopup(self, event):
-        w = event.widget
-        self.menuMouse.entryconfigure(_('Cut'), command=lambda: w.event_generate('<<Cut>>'))
-        self.menuMouse.entryconfigure(_('Copy'), command=lambda: w.event_generate('<<Copy>>'))
-        self.menuMouse.entryconfigure(_('Paste'), command=lambda: w.event_generate('<<Paste>>'))
-        self.menuMouse.tk_popup(event.x_root, event.y_root)
-
-    def windowDestroy(self, event=None):
-        window.destroy()
-
-    def about(self, event=None):
-        popup = Toplevel()
-        version = Label(popup, text='M3u8 Maker v0.1 (beta)', fg='black')
-        version.pack(pady=10)
-        img = PhotoImage(file='icons/mm_about.png')
-        lbImg = Label(popup, image=img)
-        lbImg.pack()
-        lbImg.image = img
-        github = Label(popup, text='GitHub', cursor='hand2', fg='blue')
-        github.pack(pady=5)
-        github.bind('<Button-1>', lambda e: webbrowser.open('https://github.com/Alexsussa/m3u8maker'))
-        license = Label(popup, text=_('License'), cursor='hand2', fg='blue')
-        license.pack(pady=5)
-        license.bind('<Button-1>',
-                     lambda e: webbrowser.open('https://github.com/Alexsussa/m3u8maker/blob/master/LICENSE'))
-        creator = Label(popup, text=_('Developed by:'))
-        creator.pack(pady=10)
-        name = Label(popup, text='Alex Pinheiro', cursor='hand2', fg='blue')
-        name.pack()
-        name.bind('<Button-1>', lambda e: webbrowser.open('https://t.me/Alexsussa'))
-        aboutlogo = PhotoImage(file='icons/mm_logo.png')
-        popup.grab_set()
-        popup.focus_force()
-        popup.transient(window)
-        wx = int((window.winfo_screenwidth()) // 2 - (400 // 2))
-        wy = int((window.winfo_screenheight() // 2) - (350 // 2))
-        popup.geometry(f'400x350+{wx}+{wy}')
-        popup.resizable(False, False)
-        popup.title(_('About M3u8 Maker'))
-        popup.tk.call('wm', 'iconphoto', popup._w, aboutlogo)
-
-
-window = Tk()
-logo = PhotoImage(file='icons/mm_logo.png')
-M3u8Maker(window)
-window.tk.call('wm', 'iconphoto', window._w, logo)
-window.title('M3u8 Maker')
-window.geometry(f'1100x610')
-window.mainloop()
-if window.destroy or window.quit:
-    #pass
-    os.unlink(pidFile)
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const card = document.createElement('div');
+                card.className = 'movie-card';
+                card.innerHTML = `<img src="${e.target.result}"><h4>${title}</h4>`;
+                feed.prepend(card);
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+    </script>
+</body>
+</html>
