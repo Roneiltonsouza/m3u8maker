@@ -13,9 +13,11 @@
             --dark-bg: #0a0a0a;
             --card-bg: #1a1a1a;
             --whatsapp-color: #25d366;
+            --facebook-color: #1877f2;
+            --gemini-color: #4285f4;
+            --gallery-color: #ff9800;
             --text-white: #ffffff;
             --text-gray: #a0a0a0;
-            --share-blue: #007bff;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -25,18 +27,40 @@
             overflow-x: hidden;
         }
 
-        /* Header */
         header { 
             text-align: center; padding: 45px 20px; 
             border-bottom: 3px solid var(--primary); 
             background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
         }
         .logo-rdg { font-size: 3.5rem; font-weight: 900; font-style: italic; margin: 0; color: var(--text-white); line-height: 1; }
+        
+        /* QR Code Pix */
+        .pix-container {
+            margin: 20px auto;
+            display: inline-block;
+            text-align: center;
+        }
+        .pix-qr {
+            width: 120px;
+            height: 120px;
+            background: white;
+            padding: 8px;
+            border: 3px solid var(--primary);
+            border-radius: 12px;
+            box-shadow: 0 0 15px rgba(230, 30, 30, 0.3);
+        }
+        .pix-label {
+            display: block;
+            font-size: 0.7rem;
+            color: var(--text-gray);
+            margin-top: 5px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
         .year-badge { color: var(--primary); font-size: 1.5rem; display: block; margin-top: 5px; font-weight: 300; letter-spacing: 4px; }
         .sub-logo { letter-spacing: 6px; font-size: 0.9rem; color: var(--text-gray); font-weight: bold; margin-top: 10px; text-transform: uppercase; }
-        .rdg-footer-name { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-top: 5px; font-style: italic; }
 
-        /* Navegação */
         .tabs { 
             display: flex; background: #111; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222;
         }
@@ -48,70 +72,79 @@
         .tab-btn i { display: block; font-size: 1.2rem; margin-bottom: 4px; }
         .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(230, 30, 30, 0.05); }
 
-        /* Conteúdo */
         .content-section { display: none; padding: 20px; min-height: 60vh; animation: fadeIn 0.4s ease-out; }
         .content-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Botões de Ação */
         .action-btn {
             color: white; display: flex; align-items: center; justify-content: center;
             padding: 25px 18px; border-radius: 12px; text-decoration: none; margin-top: 20px;
             font-weight: bold; text-align: center; font-size: 1.1rem; border: none; cursor: pointer; width: 100%;
         }
-        .btn-whatsapp { background: linear-gradient(45deg, #25d366, #128c7e); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
-        .btn-share { background: linear-gradient(45deg, #007bff, #0056b3); box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); }
+        .btn-gallery { background: linear-gradient(45deg, #ff9800, #f44336); box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3); }
+        .btn-gemini { background: linear-gradient(45deg, #4285f4, #9b72f3); box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3); }
+        .btn-facebook { background: linear-gradient(45deg, #1877f2, #0056b3); box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); }
 
-        /* Preços */
         .price-card {
             background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 15px;
             display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
         }
-        .price-info span { font-weight: 600; font-size: 1.1rem; display: block; }
-        .price-info small { color: #777; font-size: 0.8rem; }
         .price-value { color: var(--primary); font-size: 1.3rem; font-weight: 800; }
 
-        /* Localização Card */
-        .location-card {
+        .feature-card {
             background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #333;
         }
-        .btn-maps {
-            display: inline-block; background: #4285F4; color: white; padding: 12px 25px;
-            border-radius: 30px; text-decoration: none; margin-top: 15px; font-weight: bold;
-        }
 
-        /* Float Button */
+        /* BOTÃO FLUTUANTE WHATSAPP - CORRIGIDO */
         .float-contact {
-            position: fixed; width: 60px; height: 60px; bottom: 25px; right: 20px;
-            background-color: var(--whatsapp-color); color: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 30px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.6); text-decoration: none; z-index: 999;
+            position: fixed; 
+            width: 65px; 
+            height: 65px; 
+            bottom: 30px; 
+            right: 20px;
+            background-color: var(--whatsapp-color); 
+            color: white; 
+            border-radius: 50%;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 35px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
+            text-decoration: none; 
+            z-index: 9999;
             animation: pulse 2s infinite;
         }
 
         @keyframes pulse {
             0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(37, 211, 102, 0); }
             100% { transform: scale(1); }
         }
         
         footer { text-align: center; padding: 40px 20px; color: #555; font-size: 0.8rem; border-top: 1px solid #1a1a1a; }
+        
+        #gallery-input { display: none; }
     </style>
 </head>
 <body>
 
     <header>
         <div class="logo-rdg">RDG</div>
+        
+        <div class="pix-container">
+            <img class="pix-qr" src="https://quickchart.io/qr?text=00020101021126330014BR.GOV.BCB.PIX0111604832143025204000053039865802BR5913BarbeariaRDG6008BRASILIA62070503***6304E262&size=150" alt="Pagamento Pix">
+            <span class="pix-label"><i class="fas fa-qrcode"></i> PAGUE COM PIX</span>
+        </div>
+
         <div class="year-badge">2026</div>
         <div class="sub-logo">BARBEARIA</div>
-        <div class="rdg-footer-name">RDG</div>
     </header>
 
     <nav class="tabs">
         <button class="tab-btn active" onclick="openTab(event, 'precos')"><i class="fas fa-cut"></i>Serviços</button>
-        <button class="tab-btn" onclick="openTab(event, 'stories')"><i class="fas fa-camera"></i>Status</button>
-        <button class="tab-btn" onclick="openTab(event, 'local')"><i class="fas fa-map-marker-alt"></i>Local</button>
-        <button class="tab-btn" onclick="openTab(event, 'compartilhar')"><i class="fas fa-share-alt"></i>Indicar</button>
+        <button class="tab-btn" onclick="openTab(event, 'galeria')"><i class="fas fa-images"></i>Galeria</button>
+        <button class="tab-btn" onclick="openTab(event, 'ia')"><i class="fas fa-wand-magic-sparkles"></i>Gemini</button>
+        <button class="tab-btn" onclick="openTab(event, 'facebook')"><i class="fab fa-facebook-f"></i>Facebook</button>
     </nav>
 
     <section id="precos" class="content-section active">
@@ -126,50 +159,49 @@
         <p style="text-align: center; color: #555; font-size: 0.8rem; margin-top: 20px;">* Aceitamos PIX e Cartões</p>
     </section>
 
-    <section id="stories" class="content-section">
-        <p style="text-align: center; color: #aaa; margin-bottom: 10px;">Veja os cortes de hoje no WhatsApp:</p>
-        <a href="https://wa.me/5588988088578?text=Olá! Quero ver os modelos de hoje no seu status!" class="action-btn btn-whatsapp" target="_blank">
-            <i class="fab fa-whatsapp" style="font-size: 2rem; margin-right: 12px;"></i>
-            VER STATUS AGORA
-        </a>
+    <section id="galeria" class="content-section">
+        <div class="feature-card">
+            <i class="fas fa-camera-retro" style="font-size: 3rem; color: var(--gallery-color); margin-bottom: 15px;"></i>
+            <h3>Sua Galeria</h3>
+            <p style="color: var(--text-gray);">Escolha uma foto sua para comparar com nossos cortes!</p>
+            <input type="file" id="gallery-input" accept="image/*">
+            <button onclick="document.getElementById('gallery-input').click()" class="action-btn btn-gallery">
+                <i class="fas fa-photo-video" style="margin-right: 12px;"></i> ABRIR GALERIA
+            </button>
+        </div>
     </section>
 
-    <section id="local" class="content-section">
-        <div class="location-card">
-            <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
-            <h3>Onde Estamos</h3>
-            <p style="color: var(--text-gray);">Rua [Seu Endereço Aqui]<br>Bairro - Cidade</p>
-            <a href="https://maps.google.com" target="_blank" class="btn-maps">
-                <i class="fas fa-directions"></i> ABRIR NO MAPA
+    <section id="ia" class="content-section">
+        <div class="feature-card">
+            <i class="fas fa-robot" style="font-size: 3rem; color: var(--gemini-color); margin-bottom: 15px;"></i>
+            <h3>Assistente Gemini</h3>
+            <p style="color: var(--text-gray);">Tire dúvidas sobre estilo com a IA do Google.</p>
+            <a href="https://gemini.google.com/" target="_blank" class="action-btn btn-gemini">
+                <i class="fas fa-sparkles" style="margin-right: 12px;"></i> ABRIR GEMINI
             </a>
         </div>
     </section>
 
-    <section id="compartilhar" class="content-section">
-        <div class="location-card">
-            <i class="fas fa-users" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
-            <h3>Gostou do nosso estilo?</h3>
-            <p style="color: var(--text-gray);">Indique a Barbearia RDG para um amigo e ajude nossa comunidade a crescer!</p>
-            
-            <button onclick="shareSite()" class="action-btn btn-share">
-                <i class="fas fa-paper-plane" style="font-size: 1.5rem; margin-right: 12px;"></i>
-                COMPARTILHAR SITE
-            </button>
-            <p id="share-msg" style="color: #25d366; font-size: 0.8rem; margin-top: 10px; display: none;">Link copiado com sucesso!</p>
+    <section id="facebook" class="content-section">
+        <div class="feature-card">
+            <i class="fab fa-facebook" style="font-size: 3rem; color: var(--facebook-color); margin-bottom: 15px;"></i>
+            <h3>Nossa Rede Social</h3>
+            <p style="color: var(--text-gray);">Siga nossa página para ver novidades.</p>
+            <a href="https://www.facebook.com/" target="_blank" class="action-btn btn-facebook">
+                <i class="fab fa-facebook-f" style="margin-right: 12px;"></i> ABRIR FACEBOOK
+            </a>
         </div>
     </section>
 
-    <a href="https://wa.me/5588988088578" class="float-contact">
+    <a href="https://api.whatsapp.com/send?phone=5588988088578" class="float-contact" target="_blank">
         <i class="fab fa-whatsapp"></i>
     </a>
 
     <footer>
-        <p><strong>BARBEARIA RDG 2026</strong><br>Seg a Sáb: 08h às 17h</p>
-        <p>© 2026 - Estilo e Tradição</p>
+        <p><strong>BARBEARIA RDG 2026</strong><br>© 2026 - Estilo e Tradição</p>
     </footer>
 
     <script>
-        // Função para trocar abas
         function openTab(evt, tabName) {
             var i, content, tablinks;
             content = document.getElementsByClassName("content-section");
@@ -186,28 +218,6 @@
             evt.currentTarget.classList.add("active");
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-
-        // Função de Compartilhamento
-        function shareSite() {
-            const shareData = {
-                title: 'Barbearia RDG 2026',
-                text: 'Confira os preços e modelos da Barbearia RDG! Estilo e Tradição.',
-                url: window.location.href
-            };
-
-            // Tenta usar o compartilhamento nativo do celular
-            if (navigator.share) {
-                navigator.share(shareData)
-                    .then(() => console.log('Compartilhado com sucesso'))
-                    .catch((err) => console.log('Erro ao compartilhar', err));
-            } else {
-                // Caso seja PC, apenas copia o link
-                navigator.clipboard.writeText(window.location.href);
-                const msg = document.getElementById('share-msg');
-                msg.style.display = 'block';
-                setTimeout(() => { msg.style.display = 'none'; }, 3000);
-            }
-        }
     </script>
 </body>
-                                                                      </html>
+</html>
