@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Untitled</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Barbearia RDG 2026 | Estilo e Tradição</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e61e1e; 
+            --dark-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --whatsapp-color: #25d366;
+            --text-white: #ffffff;
+            --text-gray: #a0a0a0;
+            --share-blue: #007bff;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; background: var(--dark-bg); color: white; line-height: 1.6; 
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        header { 
+            text-align: center; padding: 45px 20px; 
+            border-bottom: 3px solid var(--primary); 
+            background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
+        }
+        .logo-rdg { font-size: 3.5rem; font-weight: 900; font-style: italic; margin: 0; color: var(--text-white); line-height: 1; }
+        .year-badge { color: var(--primary); font-size: 1.5rem; display: block; margin-top: 5px; font-weight: 300; letter-spacing: 4px; }
+        .sub-logo { letter-spacing: 6px; font-size: 0.9rem; color: var(--text-gray); font-weight: bold; margin-top: 10px; text-transform: uppercase; }
+        .rdg-footer-name { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin-top: 5px; font-style: italic; }
+
+        /* Navegação */
+        .tabs { 
+            display: flex; background: #111; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222;
+        }
+        .tab-btn { 
+            flex: 1; padding: 18px 5px; border: none; background: none; 
+            color: #666; font-weight: bold; cursor: pointer; transition: 0.3s;
+            font-size: 0.70rem; text-transform: uppercase;
+        }
+        .tab-btn i { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(230, 30, 30, 0.05); }
+
+        /* Conteúdo */
+        .content-section { display: none; padding: 20px; min-height: 60vh; animation: fadeIn 0.4s ease-out; }
+        .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Botões de Ação */
+        .action-btn {
+            color: white; display: flex; align-items: center; justify-content: center;
+            padding: 25px 18px; border-radius: 12px; text-decoration: none; margin-top: 20px;
+            font-weight: bold; text-align: center; font-size: 1.1rem; border: none; cursor: pointer; width: 100%;
+        }
+        .btn-whatsapp { background: linear-gradient(45deg, #25d366, #128c7e); box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
+        .btn-share { background: linear-gradient(45deg, #007bff, #0056b3); box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3); }
+
+        /* Preços */
+        .price-card {
+            background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
+        }
+        .price-info span { font-weight: 600; font-size: 1.1rem; display: block; }
+        .price-info small { color: #777; font-size: 0.8rem; }
+        .price-value { color: var(--primary); font-size: 1.3rem; font-weight: 800; }
+
+        /* Localização Card */
+        .location-card {
+            background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #333;
+        }
+        .btn-maps {
+            display: inline-block; background: #4285F4; color: white; padding: 12px 25px;
+            border-radius: 30px; text-decoration: none; margin-top: 15px; font-weight: bold;
+        }
+
+        /* Float Button */
+        .float-contact {
+            position: fixed; width: 60px; height: 60px; bottom: 25px; right: 20px;
+            background-color: var(--whatsapp-color); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 30px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6); text-decoration: none; z-index: 999;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
+            100% { transform: scale(1); }
+        }
+        
+        footer { text-align: center; padding: 40px 20px; color: #555; font-size: 0.8rem; border-top: 1px solid #1a1a1a; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-rdg">RDG</div>
+        <div class="year-badge">2026</div>
+        <div class="sub-logo">BARBEARIA</div>
+        <div class="rdg-footer-name">RDG</div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'precos')"><i class="fas fa-cut"></i>Serviços</button>
+        <button class="tab-btn" onclick="openTab(event, 'stories')"><i class="fas fa-camera"></i>Status</button>
+        <button class="tab-btn" onclick="openTab(event, 'local')"><i class="fas fa-map-marker-alt"></i>Local</button>
+        <button class="tab-btn" onclick="openTab(event, 'compartilhar')"><i class="fas fa-share-alt"></i>Indicar</button>
+    </nav>
+
+    <section id="precos" class="content-section active">
+        <div class="price-card">
+            <div class="price-info"><span>Corte Social</span><small>Tesoura ou Máquina</small></div>
+            <div class="price-value">R$ 13</div>
+        </div>
+        <div class="price-card">
+            <div class="price-info"><span>Corte Degradê</span><small>Sombreado Moderno</small></div>
+            <div class="price-value">R$ 17</div>
+        </div>
+        <p style="text-align: center; color: #555; font-size: 0.8rem; margin-top: 20px;">* Aceitamos PIX e Cartões</p>
+    </section>
+
+    <section id="stories" class="content-section">
+        <p style="text-align: center; color: #aaa; margin-bottom: 10px;">Veja os cortes de hoje no WhatsApp:</p>
+        <a href="https://wa.me/5588988088578?text=Olá! Quero ver os modelos de hoje no seu status!" class="action-btn btn-whatsapp" target="_blank">
+            <i class="fab fa-whatsapp" style="font-size: 2rem; margin-right: 12px;"></i>
+            VER STATUS AGORA
+        </a>
+    </section>
+
+    <section id="local" class="content-section">
+        <div class="location-card">
+            <i class="fas fa-map-marked-alt" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+            <h3>Onde Estamos</h3>
+            <p style="color: var(--text-gray);">Rua [Seu Endereço Aqui]<br>Bairro - Cidade</p>
+            <a href="https://maps.google.com" target="_blank" class="btn-maps">
+                <i class="fas fa-directions"></i> ABRIR NO MAPA
+            </a>
+        </div>
+    </section>
+
+    <section id="compartilhar" class="content-section">
+        <div class="location-card">
+            <i class="fas fa-users" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+            <h3>Gostou do nosso estilo?</h3>
+            <p style="color: var(--text-gray);">Indique a Barbearia RDG para um amigo e ajude nossa comunidade a crescer!</p>
+            
+            <button onclick="shareSite()" class="action-btn btn-share">
+                <i class="fas fa-paper-plane" style="font-size: 1.5rem; margin-right: 12px;"></i>
+                COMPARTILHAR SITE
+            </button>
+            <p id="share-msg" style="color: #25d366; font-size: 0.8rem; margin-top: 10px; display: none;">Link copiado com sucesso!</p>
+        </div>
+    </section>
+
+    <a href="https://wa.me/5588988088578" class="float-contact">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <footer>
+        <p><strong>BARBEARIA RDG 2026</strong><br>Seg a Sáb: 08h às 17h</p>
+        <p>© 2026 - Estilo e Tradição</p>
+    </footer>
+
+    <script>
+        // Função para trocar abas
+        function openTab(evt, tabName) {
+            var i, content, tablinks;
+            content = document.getElementsByClassName("content-section");
+            for (i = 0; i < content.length; i++) { 
+                content[i].style.display = "none";
+                content[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
+            
+            const activeSection = document.getElementById(tabName);
+            activeSection.style.display = "block";
+            setTimeout(() => { activeSection.classList.add("active"); }, 10);
+            evt.currentTarget.classList.add("active");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Função de Compartilhamento
+        function shareSite() {
+            const shareData = {
+                title: 'Barbearia RDG 2026',
+                text: 'Confira os preços e modelos da Barbearia RDG! Estilo e Tradição.',
+                url: window.location.href
+            };
+
+            // Tenta usar o compartilhamento nativo do celular
+            if (navigator.share) {
+                navigator.share(shareData)
+                    .then(() => console.log('Compartilhado com sucesso'))
+                    .catch((err) => console.log('Erro ao compartilhar', err));
+            } else {
+                // Caso seja PC, apenas copia o link
+                navigator.clipboard.writeText(window.location.href);
+                const msg = document.getElementById('share-msg');
+                msg.style.display = 'block';
+                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+            }
+        }
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
