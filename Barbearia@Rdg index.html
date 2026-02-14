@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>RDG 2026 | Estilo e Tradição</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e61e1e; 
+            --dark-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --whatsapp-color: #25d366;
+            --facebook-color: #1877f2;
+            --gemini-color: #4285f4;
+            --share-color: #9c27b0;
+            --gallery-color: #ff9800;
+            --text-white: #ffffff;
+            --text-gray: #a0a0a0;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; background: var(--dark-bg); color: white; line-height: 1.6; 
+            overflow-x: hidden;
+        }
+
+        /* CABEÇALHO */
+        header { 
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5%; border-bottom: 3px solid var(--primary); 
+            background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
+        }
+        .logo-rdg { font-size: 2.5rem; font-weight: 900; font-style: italic; margin: 0; line-height: 1; }
+        .year-badge { color: var(--primary); font-size: 1.1rem; display: block; letter-spacing: 4px; font-weight: bold; }
+        
+        .qr-container { text-align: center; cursor: pointer; z-index: 10; }
+        .profile-img {
+            width: 70px; height: 70px; border-radius: 50%;
+            object-fit: cover; border: 2px solid var(--primary);
+            box-shadow: 0 0 15px rgba(230, 30, 30, 0.4);
+        }
+        .qr-label { display: block; font-size: 0.6rem; color: var(--primary); font-weight: bold; margin-top: 5px; }
+
+        /* MODAL FIX */
+        .modal {
+            display: none; position: fixed; z-index: 99999;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.95); align-items: center; justify-content: center;
+        }
+        .modal-content { max-width: 85%; max-height: 70vh; border-radius: 15px; border: 2px solid var(--primary); }
+        .close-modal { position: absolute; top: 30px; right: 30px; color: white; font-size: 40px; cursor: pointer; }
+
+        /* HERO */
+        .hero-container { width: 100%; padding: 15px; }
+        .hero-banner { width: 100%; max-width: 800px; display: block; margin: 0 auto; border-radius: 15px; border: 1px solid #333; }
+
+        /* TABS FIX */
+        .tabs { 
+            display: flex; background: #111; position: sticky; top: 0; z-index: 1000; 
+            border-bottom: 1px solid #222; overflow-x: auto; white-space: nowrap;
+        }
+        .tab-btn { 
+            flex: 1; min-width: 80px; padding: 15px 5px; border: none; background: none; 
+            color: #666; font-weight: bold; cursor: pointer; font-size: 0.65rem; text-transform: uppercase;
+        }
+        .tab-btn i { display: block; font-size: 1.2rem; margin-bottom: 5px; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(230, 30, 30, 0.1); }
+
+        /* SEÇÕES */
+        .content-section { display: none; padding: 20px; min-height: 50vh; animation: fadeIn 0.3s ease; }
+        .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .price-card {
+            background: var(--card-bg); padding: 18px; border-radius: 12px; margin-bottom: 12px;
+            display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
+        }
+        .price-value { color: var(--primary); font-size: 1.3rem; font-weight: 800; }
+        .feature-card { background: var(--card-bg); padding: 30px 20px; border-radius: 20px; text-align: center; border: 1px solid #333; }
+
+        /* BOTÕES */
+        .action-btn {
+            color: white; display: flex; align-items: center; justify-content: center;
+            padding: 18px; border-radius: 12px; text-decoration: none; margin-top: 15px;
+            font-weight: bold; font-size: 1rem; border: none; cursor: pointer; width: 100%;
+        }
+        .btn-gallery { background: linear-gradient(45deg, #ff9800, #f44336); }
+        .btn-share { background: linear-gradient(45deg, #9c27b0, #673ab7); }
+        .btn-gemini { background: linear-gradient(45deg, #4285f4, #9b72f3); }
+        .btn-facebook { background: linear-gradient(45deg, #1877f2, #0056b3); }
+
+        /* WHATSAPP FLOAT */
+        .float-contact {
+            position: fixed; width: 60px; height: 60px; bottom: 25px; right: 20px;
+            background-color: var(--whatsapp-color); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); z-index: 999; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 70% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        
+        footer { text-align: center; padding: 30px; color: #444; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div class="logo-rdg">RDG</div>
+            <div class="year-badge">2026</div>
+        </div>
+        <div class="header-right">
+            <div class="qr-container" onclick="openModal()">
+                <img src="https://i.ibb.co/HpPNnqqc/97a8aeeeeff0f0cffea0265f5fcfe2f41ac511f755c6b0d03d884867738a6947.jpg" class="profile-img">
+                <span class="qr-label"><i class="fas fa-qrcode"></i> VER QR CODE</span>
+            </div>
+        </div>
+    </header>
+
+    <div id="imageModal" class="modal">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <img class="modal-content" src="https://i.ibb.co/HpPNnqqc/97a8aeeeeff0f0cffea0265f5fcfe2f41ac511f755c6b0d03d884867738a6947.jpg">
+    </div>
+
+    <div class="hero-container">
+        <img src="https://i.ibb.co/G3N2DNp5/IMG-20260212-091532.png" class="hero-banner">
+    </div>
+
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'precos')"><i class="fas fa-cut"></i>Preços</button>
+        <button class="tab-btn" onclick="openTab(event, 'galeria')"><i class="fas fa-images"></i>Galeria</button>
+        <button class="tab-btn" onclick="openTab(event, 'compartilhar')"><i class="fas fa-share-alt"></i>Indicar</button>
+        <button class="tab-btn" onclick="openTab(event, 'ia')"><i class="fas fa-robot"></i>IA</button>
+        <button class="tab-btn" onclick="openTab(event, 'facebook')"><i class="fab fa-facebook-f"></i>FB</button>
+    </nav>
+
+    <section id="precos" class="content-section active">
+        <div class="price-card">
+            <div><strong>Corte Social</strong><br><small>Tesoura ou Máquina</small></div>
+            <div class="price-value">R$ 13</div>
+        </div>
+        <div class="price-card">
+            <div><strong>Corte Degradê</strong><br><small>Sombreado Moderno</small></div>
+            <div class="price-value">R$ 17</div>
+        </div>
+    </section>
+
+    <section id="galeria" class="content-section">
+        <div class="feature-card">
+            <i class="fas fa-camera-retro" style="font-size: 3rem; color: var(--gallery-color); margin-bottom: 15px;"></i>
+            <h3>Minha Galeria</h3>
+            <p>Selecione uma foto sua ou de um corte que você curte!</p>
+            <input type="file" id="gallery-input" style="display:none" accept="image/*">
+            <button onclick="document.getElementById('gallery-input').click()" class="action-btn btn-gallery">
+                <i class="fas fa-plus-circle" style="margin-right: 10px;"></i> ADICIONAR FOTO
+            </button>
+        </div>
+    </section>
+
+    <section id="compartilhar" class="content-section">
+        <div class="feature-card">
+            <i class="fas fa-users" style="font-size: 3rem; color: var(--share-color); margin-bottom: 15px;"></i>
+            <h3>Indique a RDG</h3>
+            <p>Mande o link da nossa barbearia para seus amigos!</p>
+            <button onclick="shareSite()" class="action-btn btn-share">
+                <i class="fas fa-paper-plane" style="margin-right: 10px;"></i> COMPARTILHAR SITE
+            </button>
+        </div>
+    </section>
+
+    <section id="ia" class="content-section">
+        <div class="feature-card">
+            <i class="fas fa-wand-magic-sparkles" style="font-size: 3rem; color: var(--gemini-color); margin-bottom: 15px;"></i>
+            <h3>Dúvidas sobre estilo?</h3>
+            <p>Pergunte à Inteligência Artificial do Google sobre tendências.</p>
+            <a href="https://gemini.google.com/" target="_blank" class="action-btn btn-gemini">
+                <i class="fas fa-robot" style="margin-right: 10px;"></i> CONVERSAR COM IA
+            </a>
+        </div>
+    </section>
+
+    <section id="facebook" class="content-section">
+        <div class="feature-card">
+            <i class="fab fa-facebook" style="font-size: 3rem; color: var(--facebook-color); margin-bottom: 15px;"></i>
+            <h3>Nosso Facebook</h3>
+            <p>Siga a gente e veja as fotos dos clientes.</p>
+            <a href="https://www.facebook.com/" target="_blank" class="action-btn btn-facebook">
+                <i class="fab fa-facebook-f" style="margin-right: 10px;"></i> ABRIR FACEBOOK
+            </a>
+        </div>
+    </section>
+
+    <a href="https://api.whatsapp.com/send?phone=5588988088578&text=Olá!%20Vim%20pelo%20site%20RDG%20e%20quero%20agendar!" 
+       class="float-contact" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <footer>
+        <p><strong>RDG 2026</strong><br>© Estilo e Tradição</p>
+    </footer>
+
+    <script>
+        // Função para abrir as abas
+        function openTab(evt, tabName) {
+            var i, sections, tablinks;
+            
+            // Esconde todas as seções
+            sections = document.getElementsByClassName("content-section");
+            for (i = 0; i < sections.length; i++) {
+                sections[i].style.display = "none";
+                sections[i].classList.remove("active");
+            }
+
+            // Remove a classe 'active' de todos os botões
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].classList.remove("active");
+            }
+
+            // Mostra a seção atual e marca o botão como ativo
+            const targetSection = document.getElementById(tabName);
+            if(targetSection) {
+                targetSection.style.display = "block";
+                targetSection.classList.add("active");
+                evt.currentTarget.classList.add("active");
+                // Faz o scroll automático para o topo da seção no celular
+                window.scrollTo({top: 250, behavior: 'smooth'});
+            }
+        }
+
+        // Funções do Modal QR Code
+        function openModal() {
+            document.getElementById("imageModal").style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById("imageModal").style.display = "none";
+        }
+
+        // Fecha o modal se clicar fora da imagem
+        window.onclick = function(event) {
+            let modal = document.getElementById("imageModal");
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Função de Compartilhar
+        function shareSite() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Barbearia RDG 2026',
+                    text: 'Olha o site da Barbearia RDG! Só corte de qualidade.',
+                    url: window.location.href
+                });
+            } else {
+                alert("Link copiado: " + window.location.href);
+            }
+        }
+    </script>
+</body>
+</html>
