@@ -2,255 +2,234 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>RDG 2026 | Estilo e Tradição</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POST foto | Cloud Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #e61e1e; 
-            --dark-bg: #0a0a0a;
-            --card-bg: #1a1a1a;
-            --whatsapp-color: #25d366;
-            --facebook-color: #1877f2;
-            --gemini-color: #4285f4;
-            --gallery-color: #ff9800;
-            --text-white: #ffffff;
-            --text-gray: #a0a0a0;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            margin: 0; background: var(--dark-bg); color: white; line-height: 1.6; 
+        body {
+            background: linear-gradient(135deg, #8a131a 0%, #000000 100%);
+            min-height: 100vh;
+            color: white;
             overflow-x: hidden;
         }
-
-        /* AJUSTE DO CABEÇALHO: Lado a Lado */
-        header { 
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 25px 5%; 
-            border-bottom: 3px solid var(--primary); 
-            background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-
-        .header-left {
-            text-align: left;
-        }
-
-        .header-right {
-            text-align: right;
-        }
-
-        .logo-rdg { font-size: 2.8rem; font-weight: 900; font-style: italic; margin: 0; color: var(--text-white); line-height: 1; }
-        .year-badge { color: var(--primary); font-size: 1.2rem; display: block; margin-top: 2px; font-weight: 300; letter-spacing: 4px; }
-        .sub-logo { letter-spacing: 2px; font-size: 0.75rem; color: var(--text-gray); font-weight: bold; margin-top: 5px; text-transform: uppercase; }
-
-        .qr-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        .profile-img {
-            width: 80px; height: 80px; border-radius: 50%;
-            object-fit: cover; border: 2px solid var(--primary);
-            box-shadow: 0 0 15px rgba(230, 30, 30, 0.4);
-            transition: transform 0.2s;
-        }
+        .hidden-app { display: none !important; }
         
-        .qr-label {
-            display: block;
-            font-size: 0.65rem;
-            color: var(--primary);
-            font-weight: bold;
-            margin-top: 5px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        .modal-fade {
+            transition: all 0.3s ease-in-out;
+            transform: translateY(20px);
+            opacity: 0;
         }
-
-        .qr-container:active .profile-img { transform: scale(0.9); }
-
-        /* MODAL */
-        .modal {
-            display: none; position: fixed; z-index: 10000;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.9); align-items: center; justify-content: center; padding: 20px;
+        .modal-active .modal-fade {
+            transform: translateY(0);
+            opacity: 1;
         }
-        .modal-content {
-            max-width: 95%; max-height: 80vh; border-radius: 10px;
-            border: 2px solid var(--primary); box-shadow: 0 0 20px var(--primary);
+        /* Estilo para o visualizador de imagem cheia */
+        #viewerOverlay {
+            background: rgba(0,0,0,0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
         }
-        .close-modal {
-            position: absolute; top: 20px; right: 30px; color: white;
-            font-size: 40px; font-weight: bold; cursor: pointer;
-        }
-
-        /* CONTEÚDO */
-        .hero-container { width: 100%; padding: 15px; background: var(--dark-bg); }
-        .hero-banner {
-            width: 100%; max-width: 800px; display: block; margin: 0 auto;
-            border-radius: 15px; box-shadow: 0 10px 30px rgba(230, 30, 30, 0.2); border: 1px solid #333;
-        }
-
-        .tabs { display: flex; background: #111; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222; }
-        .tab-btn { 
-            flex: 1; padding: 18px 5px; border: none; background: none; 
-            color: #666; font-weight: bold; cursor: pointer; transition: 0.3s;
-            font-size: 0.70rem; text-transform: uppercase;
-        }
-        .tab-btn i { display: block; font-size: 1.2rem; margin-bottom: 4px; }
-        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(230, 30, 30, 0.05); }
-
-        .content-section { display: none; padding: 20px; min-height: 60vh; animation: fadeIn 0.4s ease-out; }
-        .content-section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        .action-btn {
-            color: white; display: flex; align-items: center; justify-content: center;
-            padding: 20px 18px; border-radius: 12px; text-decoration: none; margin-top: 20px;
-            font-weight: bold; text-align: center; font-size: 1.1rem; border: none; cursor: pointer; width: 100%;
-        }
-        .btn-gallery { background: linear-gradient(45deg, #ff9800, #f44336); }
-        .btn-gemini { background: linear-gradient(45deg, #4285f4, #9b72f3); }
-        .btn-facebook { background: linear-gradient(45deg, #1877f2, #0056b3); }
-
-        .price-card {
-            background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 15px;
-            display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
-        }
-        .price-value { color: var(--primary); font-size: 1.3rem; font-weight: 800; }
-
-        .feature-card {
-            background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #333;
-        }
-
-        .float-contact {
-            position: fixed; width: 65px; height: 65px; bottom: 30px; right: 20px;
-            background-color: var(--whatsapp-color); color: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 35px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-decoration: none; z-index: 9999;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            70% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        footer { text-align: center; padding: 40px 20px; color: #555; font-size: 0.8rem; border-top: 1px solid #1a1a1a; }
-        #gallery-input { display: none; }
     </style>
 </head>
-<body>
+<body class="font-sans">
 
-    <header>
-        <div class="header-left">
-            <div class="logo-rdg">RDG</div>
-            <div class="year-badge">2026</div>
-            <div class="sub-logo">ESTILO E CORTE</div>
-        </div>
-
-        <div class="header-right">
-            <div class="qr-container" onclick="openModal()">
-                <img src="https://i.ibb.co/HpPNnqqc/97a8aeeeeff0f0cffea0265f5fcfe2f41ac511f755c6b0d03d884867738a6947.jpg" 
-                     alt="Rdg Logo" class="profile-img">
-                <span class="qr-label"><i class="fas fa-qrcode"></i> QR CODE</span>
-            </div>
-        </div>
-    </header>
-
-    <div id="imageModal" class="modal" onclick="closeModal()">
-        <span class="close-modal">&times;</span>
-        <img class="modal-content" src="https://i.ibb.co/HpPNnqqc/97a8aeeeeff0f0cffea0265f5fcfe2f41ac511f755c6b0d03d884867738a6947.jpg">
+    <div id="viewerOverlay" class="fixed inset-0 p-4">
+        <button onclick="closeViewer()" class="absolute top-6 right-6 text-white text-3xl hover:text-red-500 transition">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="fullImage" src="" class="max-w-full max-h-full rounded-lg shadow-2xl object-contain">
     </div>
 
-    <div class="hero-container">
-        <img src="https://i.ibb.co/G3N2DNp5/IMG-20260212-091532.png" alt="Capa RDG" class="hero-banner">
+    <div id="welcomeScreen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-black/80">
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-black tracking-tighter italic text-white mb-2">
+                POST <span class="text-red-600 font-light">foto</span>
+            </h1>
+            <p class="text-gray-400">Sua nuvem privada, simples e segura.</p>
+        </div>
+        
+        <div class="flex flex-col gap-4 w-full max-w-xs">
+            <button onclick="openModal('register')" class="bg-red-600 hover:bg-red-700 p-4 rounded-2xl font-bold transition shadow-lg">CRIAR NOVA CONTA</button>
+            <button onclick="openModal('login')" class="bg-white/10 hover:bg-white/20 border border-white/20 p-4 rounded-2xl font-bold transition">ACESSAR MINHA NUVEM</button>
+        </div>
     </div>
 
-    <nav class="tabs">
-        <button class="tab-btn active" onclick="openTab(event, 'precos')"><i class="fas fa-cut"></i>Serviços</button>
-        <button class="tab-btn" onclick="openTab(event, 'galeria')"><i class="fas fa-images"></i>Galeria</button>
-        <button class="tab-btn" onclick="openTab(event, 'ia')"><i class="fas fa-wand-magic-sparkles"></i>Gemini</button>
-        <button class="tab-btn" onclick="openTab(event, 'facebook')"><i class="fab fa-facebook-f"></i>Facebook</button>
-    </nav>
-
-    <section id="precos" class="content-section active">
-        <div class="price-card">
-            <div class="price-info"><span>Corte Social</span><br><small>Tesoura ou Máquina</small></div>
-            <div class="price-value">R$ 13</div>
-        </div>
-        <div class="price-card">
-            <div class="price-info"><span>Corte Degradê</span><br><small>Sombreado Moderno</small></div>
-            <div class="price-value">R$ 17</div>
-        </div>
-    </section>
-
-    <section id="galeria" class="content-section">
-        <div class="feature-card">
-            <i class="fas fa-camera-retro" style="font-size: 3rem; color: var(--gallery-color); margin-bottom: 15px;"></i>
-            <h3>Sua Galeria</h3>
-            <p>Escolha uma foto para se inspirar!</p>
-            <input type="file" id="gallery-input" accept="image/*">
-            <button onclick="document.getElementById('gallery-input').click()" class="action-btn btn-gallery">
-                <i class="fas fa-photo-video" style="margin-right: 12px;"></i> ABRIR GALERIA
+    <div id="authModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
+        <div class="modal-fade glass-card w-full max-w-md p-8 rounded-3xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
             </button>
+            <div id="modalContent"></div>
         </div>
-    </section>
+    </div>
 
-    <section id="ia" class="content-section">
-        <div class="feature-card">
-            <i class="fas fa-robot" style="font-size: 3rem; color: var(--gemini-color); margin-bottom: 15px;"></i>
-            <h3>Assistente Gemini</h3>
-            <p>Tire dúvidas sobre seu estilo.</p>
-            <a href="https://gemini.google.com/" target="_blank" class="action-btn btn-gemini">
-                <i class="fas fa-sparkles" style="margin-right: 12px;"></i> ABRIR GEMINI
-            </a>
-        </div>
-    </section>
+    <div id="appContent" class="hidden-app">
+        <header class="p-6 flex justify-between items-center sticky top-0 z-50 glass-card">
+            <h1 class="text-2xl font-bold tracking-tighter italic">POST <span class="font-light text-red-500">foto</span></h1>
+            
+            <div class="flex items-center gap-4">
+                <div class="flex flex-col items-end">
+                    <span id="userDisplay" onclick="logout()" class="text-sm font-bold text-white opacity-80 hover:opacity-100 hover:text-red-400 cursor-pointer transition underline decoration-dotted uppercase tracking-wider">SAIR</span>
+                    <button onclick="deleteAccount()" class="text-[9px] font-bold text-red-500 mt-1 uppercase tracking-widest hover:text-white transition">Excluir Conta</button>
+                </div>
+                <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center border-2 border-white/50">
+                    <i class="fas fa-user text-sm"></i>
+                </div>
+            </div>
+        </header>
 
-    <section id="facebook" class="content-section">
-        <div class="feature-card">
-            <i class="fab fa-facebook" style="font-size: 3rem; color: var(--facebook-color); margin-bottom: 15px;"></i>
-            <h3>Facebook</h3>
-            <p>Veja nossos últimos cortes.</p>
-            <a href="https://www.facebook.com/" target="_blank" class="action-btn btn-facebook">
-                <i class="fab fa-facebook-f" style="margin-right: 12px;"></i> ABRIR FACEBOOK
-            </a>
-        </div>
-    </section>
+        <main class="max-w-4xl mx-auto p-4">
+            <section class="glass-card rounded-3xl p-8 mb-8 text-center border-dashed border-2 border-red-500/50 mt-6">
+                <input type="file" id="fileInput" class="hidden" accept="image/*" multiple>
+                <label for="fileInput" class="cursor-pointer group block">
+                    <div class="mb-4 text-6xl text-red-500 group-hover:scale-110 transition-transform duration-300">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h2 class="text-xl font-bold">Postar Fotos na Nuvem</h2>
+                    <p class="text-sm opacity-60">Selecione imagens para salvar</p>
+                </label>
+                
+                <div id="progressContainer" class="hidden mt-6">
+                    <div class="w-full bg-gray-700 rounded-full h-2">
+                        <div id="progressBar" class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </section>
 
-    <a href="https://api.whatsapp.com/send?phone=5588988088578&text=Olá!%20Vim%20pelo%20site%20Barbearia%20RDG%20e%20gostaria%20de%20agendar%20um%20horário%20para%20cortar%20meu%20cabelo%20✂️" 
-       class="float-contact" target="_blank">
-        <i class="fab fa-whatsapp"></i>
-    </a>
-
-    <footer>
-        <p><strong>RDG 2026</strong><br>© 2026 - Estilo e Tradição</p>
-    </footer>
+            <div id="photoGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 pb-20"></div>
+        </main>
+    </div>
 
     <script>
-        function openModal() { document.getElementById("imageModal").style.display = "flex"; }
-        function closeModal() { document.getElementById("imageModal").style.display = "none"; }
+        const modal = document.getElementById('authModal');
+        const modalContent = document.getElementById('modalContent');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const appContent = document.getElementById('appContent');
+        const viewerOverlay = document.getElementById('viewerOverlay');
+        const fullImage = document.getElementById('fullImage');
 
-        function openTab(evt, tabName) {
-            var i, content, tablinks;
-            content = document.getElementsByClassName("content-section");
-            for (i = 0; i < content.length; i++) { 
-                content[i].style.display = "none";
-                content[i].classList.remove("active");
+        function openModal(type) {
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('modal-active'), 10);
+            if (type === 'register') {
+                modalContent.innerHTML = `<h2 class="text-2xl font-bold mb-6 text-center">Criar Conta</h2><input type="email" id="email" placeholder="Seu e-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-white"><input type="password" id="pin" maxlength="4" placeholder="PIN de 4 dígitos" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-center text-xl tracking-widest text-white"><button onclick="handleAuth('register')" class="w-full bg-red-600 hover:bg-red-700 p-4 rounded-xl font-bold transition">CADASTRAR</button>`;
+            } else {
+                modalContent.innerHTML = `<h2 class="text-2xl font-bold mb-6 text-center">Login</h2><input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-white"><input type="password" id="pin" maxlength="4" placeholder="PIN" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-center text-xl text-white"><button onclick="handleAuth('login')" class="w-full bg-white text-black p-4 rounded-xl font-bold hover:bg-gray-200 transition">ENTRAR</button>`;
             }
-            tablinks = document.getElementsByClassName("tab-btn");
-            for (i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
-            document.getElementById(tabName).style.display = "block";
-            document.getElementById(tabName).classList.add("active");
-            evt.currentTarget.classList.add("active");
+        }
+
+        function closeModal() {
+            modal.classList.remove('modal-active');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function handleAuth(mode) {
+            const email = document.getElementById('email').value.toLowerCase();
+            const pin = document.getElementById('pin').value;
+            if (!email.includes('@') || pin.length < 4) { alert("E-mail inválido ou PIN curto demais."); return; }
+            if (mode === 'register') {
+                if (localStorage.getItem(email)) { alert("E-mail já cadastrado."); } 
+                else { localStorage.setItem(email, pin); loginUser(email); }
+            } else {
+                if (localStorage.getItem(email) === pin) { loginUser(email); } 
+                else { alert("Dados incorretos."); }
+            }
+        }
+
+        function loginUser(email) {
+            localStorage.setItem('currentUser', email);
+            welcomeScreen.classList.add('hidden');
+            closeModal();
+            appContent.classList.remove('hidden-app');
+        }
+
+        function logout() {
+            if(confirm("Deseja sair da sua conta?")) {
+                localStorage.removeItem('currentUser');
+                location.reload();
+            }
+        }
+
+        function deleteAccount() {
+            const email = localStorage.getItem('currentUser');
+            if (confirm(`Atenção: Deseja APAGAR a conta e todos os dados?`)) {
+                localStorage.removeItem(email);
+                localStorage.removeItem('currentUser');
+                location.reload();
+            }
+        }
+
+        // VISUALIZAÇÃO E EXCLUSÃO
+        function viewImage(src) {
+            fullImage.src = src;
+            viewerOverlay.style.display = 'flex';
+        }
+
+        function closeViewer() {
+            viewerOverlay.style.display = 'none';
+        }
+
+        function deletePhoto(button) {
+            if(confirm("Excluir esta foto permanentemente?")) {
+                button.parentElement.remove();
+            }
+        }
+
+        // LOGICA DE UPLOAD
+        const fileInput = document.getElementById('fileInput');
+        const photoGrid = document.getElementById('photoGrid');
+
+        fileInput.addEventListener('change', function(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                document.getElementById('progressContainer').classList.remove('hidden');
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += 25;
+                    document.getElementById('progressBar').style.width = progress + '%';
+                    if(progress >= 100) {
+                        clearInterval(interval);
+                        document.getElementById('progressContainer').classList.add('hidden');
+                        renderPhotos(files);
+                        document.getElementById('progressBar').style.width = '0%';
+                    }
+                }, 150);
+            }
+        });
+
+        function renderPhotos(files) {
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const div = document.createElement('div');
+                    div.className = "relative group rounded-2xl aspect-square overflow-hidden shadow-xl border border-white/10 bg-black";
+                    
+                    div.innerHTML = `
+                        <img src="${e.target.result}" onclick="viewImage('${e.target.result}')" class="w-full h-full object-cover cursor-zoom-in group-hover:scale-105 transition duration-500">
+                        <button onclick="deletePhoto(this)" class="absolute top-2 right-2 bg-black/60 text-white w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
+                            <i class="fas fa-trash-alt text-xs"></i>
+                        </button>
+                        <div class="absolute bottom-2 left-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                             <i class="fas fa-arrow-up-right-from-square text-xs bg-black/40 p-2 rounded-lg"></i>
+                        </div>
+                    `;
+                    photoGrid.prepend(div);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        window.onload = () => {
+            const user = localStorage.getItem('currentUser');
+            if(user) loginUser(user);
         }
     </script>
 </body>
