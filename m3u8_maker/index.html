@@ -48,7 +48,7 @@
 
         /* --- INTERFACE PRINCIPAL --- */
         #app-ui {
-            display: none; 
+            display: none;
             width: 100%;
             max-width: 1000px;
             padding: 20px;
@@ -87,18 +87,18 @@
         button:hover { background-color: #0056b3; }
 
         .btn-danger { background-color: var(--danger); margin-top: 10px; font-size: 12px; width: auto; padding: 5px 10px; }
-        
-        /* Estilo do botão Sair na interface */
-        .btn-logout {
-            background-color: transparent;
+
+        /* Estilo do botão Sair */
+        .btn-sair {
+            background-color: #444;
             color: #ff4d4d;
-            border: 1px solid #ff4d4d;
-            margin-top: 10px;
-            padding: 5px 20px;
+            font-size: 12px;
+            padding: 5px 10px;
             width: auto;
-            font-size: 14px;
+            margin-left: 15px;
+            border: 1px solid #ff4d4d;
         }
-        .btn-logout:hover { background-color: #ff4d4d; color: white; }
+        .btn-sair:hover { background-color: #ff4d4d; color: white; }
 
         #video-grid {
             display: grid;
@@ -120,8 +120,12 @@
             background: #333;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 5px;
+            margin-bottom: 20px;
             border-left: 5px solid var(--success);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
         }
     </style>
 </head>
@@ -148,11 +152,11 @@
         <h1>Painel de Chamadas</h1>
         
         <div class="status-bar">
-            Seu ID de Conexão: <b id="meu-id-display" style="color: #00ff00;">...</b>
+            <span>Seu ID: <b id="meu-id-display" style="color: #00ff00;">...</b></span>
+            <button class="btn-sair" onclick="sair()">Sair</button>
         </div>
-        <button class="btn-logout" onclick="deslogar()">Sair da Conta</button>
 
-        <div style="margin-top: 30px; background: #222; padding: 20px; border-radius: 10px;">
+        <div style="margin-bottom: 30px; background: #222; padding: 20px; border-radius: 10px;">
             <input type="text" id="remote-id" placeholder="ID do amigo (Ex: 55889...)">
             <button onclick="iniciarChamada()" style="width: auto;">Ligar Agora</button>
         </div>
@@ -178,7 +182,7 @@
             if (salvo) {
                 const inputFone = document.getElementById('user-phone');
                 inputFone.value = salvo;
-                inputFone.disabled = true; 
+                inputFone.disabled = true;
                 document.getElementById('auth-msg').innerText = "Bem-vindo de volta!";
                 document.getElementById('auth-msg').style.color = "#00ff00";
                 document.getElementById('area-reset').style.display = "block";
@@ -233,6 +237,16 @@
             });
         }
 
+        // Função para Sair e voltar para a tela inicial
+        function sair() {
+            if(peer) peer.destroy(); // Fecha a conexão
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop()); // Desliga a câmera
+            }
+            // Recarrega a página para voltar ao estado inicial (Login)
+            location.reload();
+        }
+
         async function iniciarMidia() {
             try {
                 localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
@@ -252,24 +266,6 @@
             call.on('stream', (remoteStream) => {
                 document.getElementById('remote-video').srcObject = remoteStream;
             });
-        }
-
-        // FUNÇÃO PARA SAIR (LOGOUT)
-        function deslogar() {
-            if(confirm("Deseja realmente sair da conta?")) {
-                // 1. Para a câmera e microfone
-                if (localStream) {
-                    localStream.getTracks().forEach(track => track.stop());
-                }
-                // 2. Destrói a conexão do Peer
-                if (peer) {
-                    peer.destroy();
-                }
-                // 3. Reseta a interface
-                document.getElementById('app-ui').style.display = 'none';
-                document.getElementById('auth-overlay').style.display = 'flex';
-                // Obs: O localStorage não é apagado aqui, para que o "Cadastro Único" continue valendo.
-            }
         }
 
         function resetarCadastro() {
