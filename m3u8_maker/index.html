@@ -3,53 +3,275 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>M3u8 Maker</title>
-    <link rel="shortcut icon" href="assets/images/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="assets/css/m3u8maker.css">
-    <link rel="stylesheet" href="assets/css/media.css" media="screen">
+    <title>POST foto | Cloud Storage</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #8a131a 0%, #000000 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .hidden-app { display: none !important; }
+        
+        #authModal { transition: opacity 0.3s ease; }
+        .modal-content-anim {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: scale(0.9);
+            opacity: 0;
+        }
+        .modal-active .modal-content-anim {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Menu de Configurações Dropdown */
+        .config-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 110%;
+            width: 180px;
+            z-index: 100;
+        }
+        .config-menu.show { display: block; }
+    </style>
 </head>
-<body>
-    <main>
-        <form method="post">
-            <label for="chid">Id do canal</label>
-            <input type="text" name="chid" id="chid" placeholder="ID do canal...">
+<body class="font-sans">
 
-            <label for="chname">Nome do canal</label>
-            <input type="text" name="chname" id="chname" placeholder="Nome do canal...">
+    <div id="viewerOverlay" class="fixed inset-0 p-4 z-[200] hidden bg-black/95 flex justify-center items-center">
+        <button onclick="closeViewer()" class="absolute top-6 right-6 text-white text-3xl hover:text-red-500 transition">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="fullImage" src="" class="max-w-full max-h-full rounded-lg shadow-2xl object-contain">
+    </div>
 
-            <label for="churl">Url do canal</label>
-            <input type="text" name="churl" id="churl" placeholder="URL do canal..."><br>
+    <div id="welcomeScreen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-black/80">
+        <div class="text-center mb-12">
+            <h1 class="text-6xl font-black tracking-tighter italic text-white mb-2">
+                POST <span class="text-red-600 font-light">foto</span>
+            </h1>
+            <p class="text-gray-400">Sua nuvem privada, simples e segura.</p>
+        </div>
+        
+        <div class="flex flex-col gap-4 w-full max-w-xs">
+            <button onclick="openModal('register')" class="bg-red-600 hover:bg-red-700 p-4 rounded-2xl font-bold transition shadow-lg">CRIAR NOVA CONTA</button>
+            <button onclick="openModal('login')" class="bg-white/10 hover:bg-white/20 border border-white/20 p-4 rounded-2xl font-bold transition">ACESSAR MINHA NUVEM</button>
+        </div>
+    </div>
 
-            <label for="logourl">Url do logo</label>
-            <input type="text" name="logourl" id="logourl" placeholder="URL do logo do canal...">
-
-            <label for="chgroup">Grupo de canais</label>
-            <input type="text" name="chgroup" id="chgroup" list="listchannel" placeholder="Grupo de canais...">
-                <datalist id="listchannel">
-                    <option>TV aberta</option>
-                    <option>Canais de filmes</option>
-                    <option>Canais de esportes</option>
-                    <option>Canais infantis</option>
-                    <option>Variedades</option>
-                </datalist>
-
-            <input title="Adicionar todas as informações no campo abaixo" id="addinfo" type="button" value="Adicionar informações">
-
-            <button title="Limpa todos os campos" id="limpar" type="button">
-                <img src="assets/images/limpar.png" alt="Limpar todos os campos" width="10" height="10">
+    <div id="authModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
+        <div class="modal-content-anim glass-card w-full max-w-md p-8 rounded-3xl relative">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
             </button>
+            <div id="modalContent"></div>
+        </div>
+    </div>
 
-            <a id="download">
-                <button title="Criar um arquivo m3u8 e baixar" id="btnDownload" type="button">
-                    <img src="assets/images/download.png" alt="Criar arquivo m3u8 e baixar" width="10" height="10">
+    <div id="appContent" class="hidden-app">
+        <header class="p-6 flex justify-between items-center sticky top-0 z-50 glass-card">
+            <h1 class="text-2xl font-bold tracking-tighter italic">POST <span class="font-light text-red-500">foto</span></h1>
+            
+            <div class="relative">
+                <button onclick="toggleConfig()" class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center border-2 border-white/50 hover:bg-red-700 transition">
+                    <i class="fas fa-cog text-white"></i>
                 </button>
-            </a><br>
+                
+                <div id="configMenu" class="config-menu glass-card rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="p-3 border-b border-white/10 text-[10px] text-gray-400 uppercase font-bold text-center" id="userEmailDisplay"></div>
+                    <button onclick="logout()" class="w-full p-4 text-left hover:bg-white/10 transition flex items-center gap-3">
+                        <i class="fas fa-sign-out-alt text-red-500"></i> <span class="text-sm font-bold">Sair</span>
+                    </button>
+                    <button onclick="deleteAccount()" class="w-full p-4 text-left hover:bg-red-600/20 transition flex items-center gap-3">
+                        <i class="fas fa-trash-alt text-red-500"></i> <span class="text-[10px] font-bold uppercase text-red-500">Excluir Conta</span>
+                    </button>
+                </div>
+            </div>
+        </header>
 
-            <textarea name="infofield" id="infofield" cols="100" rows="30" placeholder="As informações aparecerão aqui..."></textarea>
+        <main class="max-w-4xl mx-auto p-4">
+            <section class="glass-card rounded-3xl p-8 mb-8 text-center border-dashed border-2 border-red-500/50 mt-6">
+                <input type="file" id="fileInput" class="hidden" accept="image/*" multiple onchange="handleFileUpload(event)">
+                <label for="fileInput" class="cursor-pointer group block">
+                    <div class="mb-4 text-6xl text-red-500 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h2 class="text-xl font-bold">Postar Fotos na Nuvem</h2>
+                    <p class="text-sm opacity-60">Clique aqui para selecionar fotos</p>
+                </label>
+            </section>
+            <div id="photoGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 pb-20"></div>
+        </main>
+    </div>
 
-            <p>Desenvolvido por &copy;<a href="https://youtube.com/AlexPinheiroSussa" target="_blank">Alex Pinheiro</a></p>
-        </form>
-    </main>
-    <script src="assets/js/m3u8maker.js"></script>
+    <script>
+        const modal = document.getElementById('authModal');
+        const modalContent = document.getElementById('modalContent');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const appContent = document.getElementById('appContent');
+        const configMenu = document.getElementById('configMenu');
+
+        window.onload = () => {
+            const user = localStorage.getItem('currentUser');
+            if (user) loginUser(user);
+        };
+
+        function toggleConfig() {
+            configMenu.classList.toggle('show');
+        }
+
+        // Fecha o menu se clicar fora
+        window.onclick = function(event) {
+            if (!event.target.closest('.relative')) {
+                configMenu.classList.remove('show');
+            }
+        }
+
+        function openModal(type) {
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('modal-active'), 10);
+            
+            if (type === 'register') {
+                modalContent.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-6 text-center">Criar Conta</h2>
+                    <input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-red-500">
+                    <input type="password" id="pin" maxlength="4" placeholder="PIN (4 dígitos)" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 text-center text-xl text-white outline-none focus:border-red-500">
+                    <button onclick="handleAuth('register')" class="w-full bg-red-600 hover:bg-red-700 p-4 rounded-xl font-bold transition">CADASTRAR AGORA</button>`;
+            } else {
+                modalContent.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+                    <input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-red-500">
+                    <input type="password" id="pin" maxlength="4" placeholder="PIN" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 text-center text-xl text-white outline-none focus:border-red-500">
+                    <button onclick="handleAuth('login')" class="w-full bg-white text-black p-4 rounded-xl font-bold hover:bg-gray-200 transition">ENTRAR</button>`;
+            }
+        }
+
+        function closeModal() {
+            modal.classList.remove('modal-active');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function handleAuth(mode) {
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const pin = document.getElementById('pin').value;
+
+            if (!email.includes('@') || pin.length < 4) {
+                alert("Preencha o e-mail corretamente e use um PIN de 4 dígitos.");
+                return;
+            }
+
+            if (mode === 'register') {
+                if (localStorage.getItem(`user_${email}`)) {
+                    alert("Este e-mail já está cadastrado.");
+                } else {
+                    localStorage.setItem(`user_${email}`, pin);
+                    loginUser(email);
+                }
+            } else {
+                if (localStorage.getItem(`user_${email}`) === pin) {
+                    loginUser(email);
+                } else {
+                    alert("E-mail ou PIN incorretos.");
+                }
+            }
+        }
+
+        function loginUser(email) {
+            localStorage.setItem('currentUser', email);
+            document.getElementById('userEmailDisplay').innerText = email;
+            welcomeScreen.classList.add('hidden');
+            appContent.classList.remove('hidden-app');
+            closeModal();
+            loadPhotos();
+        }
+
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const src = e.target.result;
+                    savePhotoToStorage(src);
+                    appendPhotoToGrid(src);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function savePhotoToStorage(src) {
+            const email = localStorage.getItem('currentUser');
+            const photos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
+            photos.push(src);
+            try {
+                localStorage.setItem(`photos_${email}`, JSON.stringify(photos));
+            } catch (e) {
+                alert("Armazenamento cheio!");
+            }
+        }
+
+        function loadPhotos() {
+            const email = localStorage.getItem('currentUser');
+            const photos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
+            const grid = document.getElementById('photoGrid');
+            grid.innerHTML = '';
+            photos.forEach(src => appendPhotoToGrid(src));
+        }
+
+        function appendPhotoToGrid(src) {
+            const div = document.createElement('div');
+            div.className = "relative group rounded-2xl aspect-square overflow-hidden shadow-xl border border-white/10 bg-black";
+            div.innerHTML = `
+                <img src="${src}" onclick="viewImage('${src}')" class="w-full h-full object-cover cursor-zoom-in group-hover:scale-105 transition duration-500">
+                <button onclick="deletePhoto(this, '${src}')" class="absolute top-2 right-2 bg-black/60 text-white w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
+                    <i class="fas fa-trash-alt text-xs"></i>
+                </button>`;
+            document.getElementById('photoGrid').prepend(div);
+        }
+
+        function viewImage(src) {
+            const overlay = document.getElementById('viewerOverlay');
+            document.getElementById('fullImage').src = src;
+            overlay.classList.remove('hidden');
+        }
+
+        function closeViewer() {
+            document.getElementById('viewerOverlay').classList.add('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            // Reset visual para o menu principal
+            appContent.classList.add('hidden-app');
+            welcomeScreen.classList.remove('hidden');
+            configMenu.classList.remove('show');
+            document.getElementById('photoGrid').innerHTML = '';
+        }
+
+        function deleteAccount() {
+            if(confirm("ATENÇÃO: Isso apagará sua conta e TODAS as fotos permanentemente. Confirmar?")) {
+                const email = localStorage.getItem('currentUser');
+                localStorage.removeItem(`user_${email}`);
+                localStorage.removeItem(`photos_${email}`);
+                logout();
+            }
+        }
+
+        function deletePhoto(btn, src) {
+            if(confirm("Excluir foto?")) {
+                const email = localStorage.getItem('currentUser');
+                let photos = JSON.parse(localStorage.getItem(`photos_${email}`));
+                photos = photos.filter(p => p !== src);
+                localStorage.setItem(`photos_${email}`, JSON.stringify(photos));
+                btn.parentElement.remove();
+            }
+        }
+    </script>
 </body>
 </html>
