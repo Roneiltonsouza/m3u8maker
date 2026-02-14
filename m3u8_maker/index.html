@@ -3,274 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>POST foto | Cloud Storage</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Web VD 3.0 - Login por Telefone</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        body {
-            background: linear-gradient(135deg, #8a131a 0%, #000000 100%);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        .hidden-app { display: none !important; }
-        
-        #authModal { transition: opacity 0.3s ease; }
-        .modal-content-anim {
-            transition: transform 0.3s ease, opacity 0.3s ease;
-            transform: scale(0.9);
-            opacity: 0;
-        }
-        .modal-active .modal-content-anim {
-            transform: scale(1);
-            opacity: 1;
+        :root {
+            --primary: #007bff;
+            --dark: #121212;
+            --surface: #1e1e1e;
+            --success: #28a745;
         }
 
-        /* Menu de Configurações Dropdown */
-        .config-menu {
-            display: none;
-            position: absolute;
-            right: 0;
-            top: 110%;
-            width: 180px;
-            z-index: 100;
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--dark);
+            color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
         }
-        .config-menu.show { display: block; }
+
+        /* --- LOGIN FLUTUANTE --- */
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .auth-card {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* --- INTERFACE PRINCIPAL --- */
+        .main-content {
+            display: none; /* Escondido até logar */
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+            width: 80%;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--primary);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover { background-color: #0056b3; }
+
+        #video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 12px;
+            background: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .local-v { transform: scaleX(-1); border: 2px solid var(--primary); }
+
+        .status-bar {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
-<body class="font-sans">
+<body>
 
-    <div id="viewerOverlay" class="fixed inset-0 p-4 z-[200] hidden bg-black/95 flex justify-center items-center">
-        <button onclick="closeViewer()" class="absolute top-6 right-6 text-white text-3xl hover:text-red-500 transition">
-            <i class="fas fa-times"></i>
-        </button>
-        <img id="fullImage" src="" class="max-w-full max-h-full rounded-lg shadow-2xl object-contain">
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>Web VD 3.0</h2>
+            <p>Cadastre-se ou Entre com seu número</p>
+            <input type="text" id="user-phone" placeholder="DDD + Número (Ex: 88988088578)">
+            <input type="password" id="user-pass" placeholder="Senha (Sempre 55)">
+            <button onclick="fazerLogin()">Entrar no Sistema</button>
+            <p style="font-size: 12px; color: #888; margin-top: 15px;">
+                Dica: O ID gerado será 55 + seu número.
+            </p>
+        </div>
     </div>
 
-    <div id="welcomeScreen" class="fixed inset-0 z-[100] flex flex-col items-center justify-center p-6 bg-black/80">
-        <div class="text-center mb-12">
-            <h1 class="text-6xl font-black tracking-tighter italic text-white mb-2">
-                POST <span class="text-red-600 font-light">foto</span>
-            </h1>
-            <p class="text-gray-400">Sua nuvem privada, simples e segura.</p>
-        </div>
+    <div class="main-content" id="app-ui">
+        <h1>Web VD 3.0</h1>
         
-        <div class="flex flex-col gap-4 w-full max-w-xs">
-            <button onclick="openModal('register')" class="bg-red-600 hover:bg-red-700 p-4 rounded-2xl font-bold transition shadow-lg">CRIAR NOVA CONTA</button>
-            <button onclick="openModal('login')" class="bg-white/10 hover:bg-white/20 border border-white/20 p-4 rounded-2xl font-bold transition">ACESSAR MINHA NUVEM</button>
+        <div class="status-bar">
+            Seu ID de Conexão: <b id="meu-id-display" style="color: #00ff00;">...</b>
         </div>
-    </div>
 
-    <div id="authModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
-        <div class="modal-content-anim glass-card w-full max-w-md p-8 rounded-3xl relative">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-            <div id="modalContent"></div>
+        <div style="margin-bottom: 30px;">
+            <input type="text" id="remote-id" placeholder="ID do amigo (Ex: 55889...)">
+            <button onclick="iniciarChamada()">Ligar Agora</button>
         </div>
-    </div>
 
-    <div id="appContent" class="hidden-app">
-        <header class="p-6 flex justify-between items-center sticky top-0 z-50 glass-card">
-            <h1 class="text-2xl font-bold tracking-tighter italic">POST <span class="font-light text-red-500">foto</span></h1>
-            
-            <div class="relative">
-                <button onclick="toggleConfig()" class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center border-2 border-white/50 hover:bg-red-700 transition">
-                    <i class="fas fa-cog text-white"></i>
-                </button>
-                
-                <div id="configMenu" class="config-menu glass-card rounded-2xl overflow-hidden shadow-2xl">
-                    <div class="p-3 border-b border-white/10 text-[10px] text-gray-400 uppercase font-bold text-center" id="userEmailDisplay"></div>
-                    <button onclick="logout()" class="w-full p-4 text-left hover:bg-white/10 transition flex items-center gap-3">
-                        <i class="fas fa-sign-out-alt text-red-500"></i> <span class="text-sm font-bold">Sair</span>
-                    </button>
-                    <button onclick="deleteAccount()" class="w-full p-4 text-left hover:bg-red-600/20 transition flex items-center gap-3">
-                        <i class="fas fa-trash-alt text-red-500"></i> <span class="text-[10px] font-bold uppercase text-red-500">Excluir Conta</span>
-                    </button>
-                </div>
+        <div id="video-grid">
+            <div>
+                <p>Minha Câmera</p>
+                <video id="local-video" class="local-v" autoplay muted playsinline></video>
             </div>
-        </header>
-
-        <main class="max-w-4xl mx-auto p-4">
-            <section class="glass-card rounded-3xl p-8 mb-8 text-center border-dashed border-2 border-red-500/50 mt-6">
-                <input type="file" id="fileInput" class="hidden" accept="image/*" multiple onchange="handleFileUpload(event)">
-                <label for="fileInput" class="cursor-pointer group block">
-                    <div class="mb-4 text-6xl text-red-500 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                    </div>
-                    <h2 class="text-xl font-bold">Postar Fotos na Nuvem</h2>
-                    <p class="text-sm opacity-60">Clique aqui para selecionar fotos</p>
-                </label>
-            </section>
-            <div id="photoGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 pb-20"></div>
-        </main>
+            <div>
+                <p>Vídeo Remoto</p>
+                <video id="remote-video" autoplay playsinline></video>
+            </div>
+        </div>
     </div>
 
     <script>
-        const modal = document.getElementById('authModal');
-        const modalContent = document.getElementById('modalContent');
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        const appContent = document.getElementById('appContent');
-        const configMenu = document.getElementById('configMenu');
+        let peer;
+        let localStream;
 
-        window.onload = () => {
-            const user = localStorage.getItem('currentUser');
-            if (user) loginUser(user);
-        };
+        async function fazerLogin() {
+            const fone = document.getElementById('user-phone').value;
+            const senha = document.getElementById('user-pass').value;
 
-        function toggleConfig() {
-            configMenu.classList.toggle('show');
-        }
-
-        // Fecha o menu se clicar fora
-        window.onclick = function(event) {
-            if (!event.target.closest('.relative')) {
-                configMenu.classList.remove('show');
+            // Validação simples conforme sua regra
+            if (fone.length < 10) {
+                alert("Digite o número completo com DDD!");
+                return;
             }
-        }
-
-        function openModal(type) {
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('modal-active'), 10);
-            
-            if (type === 'register') {
-                modalContent.innerHTML = `
-                    <h2 class="text-2xl font-bold mb-6 text-center">Criar Conta</h2>
-                    <input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-red-500">
-                    <input type="password" id="pin" maxlength="4" placeholder="PIN (4 dígitos)" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 text-center text-xl text-white outline-none focus:border-red-500">
-                    <button onclick="handleAuth('register')" class="w-full bg-red-600 hover:bg-red-700 p-4 rounded-xl font-bold transition">CADASTRAR AGORA</button>`;
-            } else {
-                modalContent.innerHTML = `
-                    <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
-                    <input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-red-500">
-                    <input type="password" id="pin" maxlength="4" placeholder="PIN" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 text-center text-xl text-white outline-none focus:border-red-500">
-                    <button onclick="handleAuth('login')" class="w-full bg-white text-black p-4 rounded-xl font-bold hover:bg-gray-200 transition">ENTRAR</button>`;
-            }
-        }
-
-        function closeModal() {
-            modal.classList.remove('modal-active');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        }
-
-        function handleAuth(mode) {
-            const email = document.getElementById('email').value.trim().toLowerCase();
-            const pin = document.getElementById('pin').value;
-
-            if (!email.includes('@') || pin.length < 4) {
-                alert("Preencha o e-mail corretamente e use um PIN de 4 dígitos.");
+            if (senha !== "55") {
+                alert("Senha incorreta! A senha padrão é 55.");
                 return;
             }
 
-            if (mode === 'register') {
-                if (localStorage.getItem(`user_${email}`)) {
-                    alert("Este e-mail já está cadastrado.");
-                } else {
-                    localStorage.setItem(`user_${email}`, pin);
-                    loginUser(email);
-                }
-            } else {
-                if (localStorage.getItem(`user_${email}`) === pin) {
-                    loginUser(email);
-                } else {
-                    alert("E-mail ou PIN incorretos.");
-                }
-            }
-        }
+            // O ID oficial será 55 + número
+            const idOficial = "55" + fone;
 
-        function loginUser(email) {
-            localStorage.setItem('currentUser', email);
-            document.getElementById('userEmailDisplay').innerText = email;
-            welcomeScreen.classList.add('hidden');
-            appContent.classList.remove('hidden-app');
-            closeModal();
-            loadPhotos();
-        }
+            // Inicializa o Peer com o ID personalizado (o número do celular)
+            peer = new Peer(idOficial);
 
-        function handleFileUpload(event) {
-            const files = event.target.files;
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const src = e.target.result;
-                    savePhotoToStorage(src);
-                    appendPhotoToGrid(src);
-                };
-                reader.readAsDataURL(file);
+            peer.on('open', (id) => {
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('app-ui').style.display = 'block';
+                document.getElementById('meu-id-display').innerText = id;
+                iniciarMidia();
+            });
+
+            peer.on('error', (err) => {
+                if(err.type === 'unavailable-id') {
+                    alert("Este número já está logado em outra aba!");
+                } else {
+                    alert("Erro no servidor: " + err.type);
+                }
+            });
+
+            // Configura o recebimento de chamadas
+            peer.on('call', (call) => {
+                call.answer(localStream);
+                call.on('stream', (remoteStream) => {
+                    document.getElementById('remote-video').srcObject = remoteStream;
+                });
             });
         }
 
-        function savePhotoToStorage(src) {
-            const email = localStorage.getItem('currentUser');
-            const photos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
-            photos.push(src);
+        async function iniciarMidia() {
             try {
-                localStorage.setItem(`photos_${email}`, JSON.stringify(photos));
-            } catch (e) {
-                alert("Armazenamento cheio!");
+                localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('local-video').srcObject = localStream;
+            } catch (err) {
+                alert("Câmera não encontrada ou acesso negado.");
             }
         }
 
-        function loadPhotos() {
-            const email = localStorage.getItem('currentUser');
-            const photos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
-            const grid = document.getElementById('photoGrid');
-            grid.innerHTML = '';
-            photos.forEach(src => appendPhotoToGrid(src));
-        }
+        function iniciarChamada() {
+            const destId = document.getElementById('remote-id').value;
+            if (!destId) return alert("Digite o ID de quem você quer ligar!");
 
-        function appendPhotoToGrid(src) {
-            const div = document.createElement('div');
-            div.className = "relative group rounded-2xl aspect-square overflow-hidden shadow-xl border border-white/10 bg-black";
-            div.innerHTML = `
-                <img src="${src}" onclick="viewImage('${src}')" class="w-full h-full object-cover cursor-zoom-in group-hover:scale-105 transition duration-500">
-                <button onclick="deletePhoto(this, '${src}')" class="absolute top-2 right-2 bg-black/60 text-white w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
-                    <i class="fas fa-trash-alt text-xs"></i>
-                </button>`;
-            document.getElementById('photoGrid').prepend(div);
-        }
-
-        function viewImage(src) {
-            const overlay = document.getElementById('viewerOverlay');
-            document.getElementById('fullImage').src = src;
-            overlay.classList.remove('hidden');
-        }
-
-        function closeViewer() {
-            document.getElementById('viewerOverlay').classList.add('hidden');
-        }
-
-        function logout() {
-            localStorage.removeItem('currentUser');
-            // Reset visual para o menu principal
-            appContent.classList.add('hidden-app');
-            welcomeScreen.classList.remove('hidden');
-            configMenu.classList.remove('show');
-            document.getElementById('photoGrid').innerHTML = '';
-        }
-
-        function deleteAccount() {
-            if(confirm("ATENÇÃO: Isso apagará sua conta e TODAS as fotos permanentemente. Confirmar?")) {
-                const email = localStorage.getItem('currentUser');
-                localStorage.removeItem(`user_${email}`);
-                localStorage.removeItem(`photos_${email}`);
-                logout();
-            }
-        }
-
-        function deletePhoto(btn, src) {
-            if(confirm("Excluir foto?")) {
-                const email = localStorage.getItem('currentUser');
-                let photos = JSON.parse(localStorage.getItem(`photos_${email}`));
-                photos = photos.filter(p => p !== src);
-                localStorage.setItem(`photos_${email}`, JSON.stringify(photos));
-                btn.parentElement.remove();
-            }
+            const call = peer.call(destId, localStream);
+            call.on('stream', (remoteStream) => {
+                document.getElementById('remote-video').srcObject = remoteStream;
+            });
         }
     </script>
 </body>
