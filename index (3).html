@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Barbearia RDG 2026 | Estilo e Tradição</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #e61e1e; 
+            --dark-bg: #0a0a0a;
+            --card-bg: #1a1a1a;
+            --whatsapp-color: #25d366;
+            --facebook-color: #1877f2;
+            --gemini-color: #4285f4;
+            --gallery-color: #ff9800;
+            --text-white: #ffffff;
+            --text-gray: #a0a0a0;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            margin: 0; background: var(--dark-bg); color: white; line-height: 1.6; 
+            overflow-x: hidden;
+        }
+
+        header { 
+            text-align: center; padding: 45px 20px; 
+            border-bottom: 3px solid var(--primary); 
+            background: linear-gradient(to bottom, #1a1a1a, #0a0a0a);
+        }
+        .logo-rdg { font-size: 3.5rem; font-weight: 900; font-style: italic; margin: 0; color: var(--text-white); line-height: 1; }
+        .year-badge { color: var(--primary); font-size: 1.5rem; display: block; margin-top: 5px; font-weight: 300; letter-spacing: 4px; }
+        .sub-logo { letter-spacing: 6px; font-size: 0.9rem; color: var(--text-gray); font-weight: bold; margin-top: 10px; text-transform: uppercase; }
+
+        .tabs { 
+            display: flex; background: #111; position: sticky; top: 0; z-index: 100; border-bottom: 1px solid #222;
+        }
+        .tab-btn { 
+            flex: 1; padding: 18px 5px; border: none; background: none; 
+            color: #666; font-weight: bold; cursor: pointer; transition: 0.3s;
+            font-size: 0.70rem; text-transform: uppercase;
+        }
+        .tab-btn i { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+        .tab-btn.active { color: var(--primary); border-bottom: 3px solid var(--primary); background: rgba(230, 30, 30, 0.05); }
+
+        .content-section { display: none; padding: 20px; min-height: 60vh; animation: fadeIn 0.4s ease-out; }
+        .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .action-btn {
+            color: white; display: flex; align-items: center; justify-content: center;
+            padding: 25px 18px; border-radius: 12px; text-decoration: none; margin-top: 20px;
+            font-weight: bold; text-align: center; font-size: 1.1rem; border: none; cursor: pointer; width: 100%;
+        }
+        .btn-gallery { background: linear-gradient(45deg, #ff9800, #f44336); box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3); }
+        .btn-gemini { background: linear-gradient(45deg, #4285f4, #9b72f3); box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3); }
+        .btn-facebook { background: linear-gradient(45deg, #1877f2, #0056b3); box-shadow: 0 4px 15px rgba(24, 119, 242, 0.3); }
+
+        .price-card {
+            background: var(--card-bg); padding: 20px; border-radius: 12px; margin-bottom: 15px;
+            display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary);
+        }
+        .price-value { color: var(--primary); font-size: 1.3rem; font-weight: 800; }
+
+        .feature-card {
+            background: var(--card-bg); padding: 25px; border-radius: 15px; text-align: center; border: 1px solid #333;
+        }
+
+        /* AJUSTE NO BOTÃO FLUTUANTE */
+        .float-contact {
+            position: fixed; width: 65px; height: 65px; bottom: 30px; right: 20px;
+            background-color: var(--whatsapp-color); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 35px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); text-decoration: none; 
+            z-index: 9999; /* Z-index altíssimo para sobrepor tudo */
+            animation: pulse 2s infinite;
+            cursor: pointer;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
+            70% { transform: scale(1.1); box-shadow: 0 0 0 20px rgba(37, 211, 102, 0); }
+            100% { transform: scale(1); }
+        }
+        
+        footer { text-align: center; padding: 40px 20px; color: #555; font-size: 0.8rem; border-top: 1px solid #1a1a1a; }
+        
+        #gallery-input { display: none; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-rdg">RDG</div>
+        <div class="year-badge">2026</div>
+        <div class="sub-logo">BARBEARIA</div>
+    </header>
+
+    <nav class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'precos')"><i class="fas fa-cut"></i>Serviços</button>
+        <button class="tab-btn" onclick="openTab(event, 'galeria')"><i class="fas fa-images"></i>Galeria</button>
+        <button class="tab-btn" onclick="openTab(event, 'ia')"><i class="fas fa-wand-magic-sparkles"></i>Gemini</button>
+        <button class="tab-btn" onclick="openTab(event, 'facebook')"><i class="fab fa-facebook-f"></i>Facebook</button>
+    </nav>
+
+    <section id="precos" class="content-section active">
+        <div class="price-card">
+            <div class="price-info"><span>Corte Social</span><small>Tesoura ou Máquina</small></div>
+            <div class="price-value">R$ 13</div>
+        </div>
+        <div class="price-card">
+            <div class="price-info"><span>Corte Degradê</span><small>Sombreado Moderno</small></div>
+            <div class="price-value">R$ 17</div>
+        </div>
+        <p style="text-align: center; color: #555; font-size: 0.8rem; margin-top: 20px;">* Aceitamos PIX e Cartões</p>
+    </section>
+
+    <section id="galeria" class="content-section">
+        <div class="feature-card">
+            <i class="fas fa-camera-retro" style="font-size: 3rem; color: var(--gallery-color); margin-bottom: 15px;"></i>
+            <h3>Sua Galeria</h3>
+            <p style="color: var(--text-gray);">Escolha uma foto sua para comparar com nossos cortes!</p>
+            <input type="file" id="gallery-input" accept="image/*">
+            <button onclick="document.getElementById('gallery-input').click()" class="action-btn btn-gallery">
+                <i class="fas fa-photo-video" style="margin-right: 12px;"></i> ABRIR GALERIA
+            </button>
+        </div>
+    </section>
+
+    <section id="ia" class="content-section">
+        <div class="feature-card">
+            <i class="fas fa-robot" style="font-size: 3rem; color: var(--gemini-color); margin-bottom: 15px;"></i>
+            <h3>Assistente Gemini</h3>
+            <p style="color: var(--text-gray);">Tire dúvidas sobre estilo com a IA do Google.</p>
+            <a href="https://gemini.google.com/" target="_blank" class="action-btn btn-gemini">
+                <i class="fas fa-sparkles" style="margin-right: 12px;"></i> ABRIR GEMINI
+            </a>
+        </div>
+    </section>
+
+    <section id="facebook" class="content-section">
+        <div class="feature-card">
+            <i class="fab fa-facebook" style="font-size: 3rem; color: var(--facebook-color); margin-bottom: 15px;"></i>
+            <h3>Nossa Rede Social</h3>
+            <p style="color: var(--text-gray);">Siga nossa página para ver novidades.</p>
+            <a href="https://www.facebook.com/" target="_blank" class="action-btn btn-facebook">
+                <i class="fab fa-facebook-f" style="margin-right: 12px;"></i> ABRIR FACEBOOK
+            </a>
+        </div>
+    </section>
+
+    <a href="https://api.whatsapp.com/send?phone=5588988088578&text=Olá!%20Vim%20pelo%20site%20da%20Barbearia%20RDG%20e%20gostaria%20de%20agendar%20um%20horário." 
+       class="float-contact" 
+       target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <footer>
+        <p><strong>BARBEARIA RDG 2026</strong><br>© 2026 - Estilo e Tradição</p>
+    </footer>
+
+    <script>
+        function openTab(evt, tabName) {
+            var i, content, tablinks;
+            content = document.getElementsByClassName("content-section");
+            for (i = 0; i < content.length; i++) { 
+                content[i].style.display = "none";
+                content[i].classList.remove("active");
+            }
+            tablinks = document.getElementsByClassName("tab-btn");
+            for (i = 0; i < tablinks.length; i++) { tablinks[i].classList.remove("active"); }
+            
+            const activeSection = document.getElementById(tabName);
+            activeSection.style.display = "block";
+            setTimeout(() => { activeSection.classList.add("active"); }, 10);
+            evt.currentTarget.classList.add("active");
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
