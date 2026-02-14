@@ -20,27 +20,31 @@
         }
         .hidden-app { display: none !important; }
         
-        .modal-fade {
-            transition: all 0.3s ease-in-out;
-            transform: translateY(20px);
+        #authModal { transition: opacity 0.3s ease; }
+        .modal-content-anim {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            transform: scale(0.9);
             opacity: 0;
         }
-        .modal-active .modal-fade {
-            transform: translateY(0);
+        .modal-active .modal-content-anim {
+            transform: scale(1);
             opacity: 1;
         }
-        #viewerOverlay {
-            background: rgba(0,0,0,0.95);
+
+        .config-menu {
             display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
+            position: absolute;
+            right: 0;
+            top: 110%;
+            width: 180px;
+            z-index: 100;
         }
+        .config-menu.show { display: block; }
     </style>
 </head>
 <body class="font-sans">
 
-    <div id="viewerOverlay" class="fixed inset-0 p-4">
+    <div id="viewerOverlay" class="fixed inset-0 p-4 z-[200] hidden bg-black/95 flex justify-center items-center">
         <button onclick="closeViewer()" class="absolute top-6 right-6 text-white text-3xl hover:text-red-500 transition">
             <i class="fas fa-times"></i>
         </button>
@@ -61,8 +65,8 @@
         </div>
     </div>
 
-    <div id="authModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm">
-        <div class="modal-fade glass-card w-full max-w-md p-8 rounded-3xl relative">
+    <div id="authModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-6 bg-black/70 backdrop-blur-sm">
+        <div class="modal-content-anim glass-card w-full max-w-md p-8 rounded-3xl relative">
             <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
                 <i class="fas fa-times text-xl"></i>
             </button>
@@ -74,35 +78,40 @@
         <header class="p-6 flex justify-between items-center sticky top-0 z-50 glass-card">
             <h1 class="text-2xl font-bold tracking-tighter italic">POST <span class="font-light text-red-500">foto</span></h1>
             
-            <div class="flex items-center gap-4">
-                <div class="flex flex-col items-end">
-                    <span id="userDisplay" onclick="logout()" class="text-sm font-bold text-white opacity-80 hover:opacity-100 hover:text-red-400 cursor-pointer transition underline decoration-dotted uppercase tracking-wider">SAIR</span>
-                    <button onclick="deleteAccount()" class="text-[9px] font-bold text-red-500 mt-1 uppercase tracking-widest hover:text-white transition">Excluir Conta</button>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center border-2 border-white/50">
-                    <i class="fas fa-user text-sm"></i>
+            <div class="flex items-center gap-3">
+                <button onclick="shareApp()" title="Compartilhar link" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/20 hover:bg-white/20 transition">
+                    <i class="fas fa-share-alt text-white"></i>
+                </button>
+
+                <div class="relative">
+                    <button onclick="toggleConfig()" class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center border-2 border-white/50 hover:bg-red-700 transition">
+                        <i class="fas fa-cog text-white"></i>
+                    </button>
+                    
+                    <div id="configMenu" class="config-menu glass-card rounded-2xl overflow-hidden shadow-2xl">
+                        <div class="p-3 border-b border-white/10 text-[10px] text-gray-400 uppercase font-bold text-center" id="userEmailDisplay"></div>
+                        <button onclick="logout()" class="w-full p-4 text-left hover:bg-white/10 transition flex items-center gap-3">
+                            <i class="fas fa-sign-out-alt text-red-500"></i> <span class="text-sm font-bold">Sair</span>
+                        </button>
+                        <button onclick="deleteAccount()" class="w-full p-4 text-left hover:bg-red-600/20 transition flex items-center gap-3">
+                            <i class="fas fa-trash-alt text-red-500"></i> <span class="text-[10px] font-bold uppercase text-red-500">Excluir Conta</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </header>
 
         <main class="max-w-4xl mx-auto p-4">
             <section class="glass-card rounded-3xl p-8 mb-8 text-center border-dashed border-2 border-red-500/50 mt-6">
-                <input type="file" id="fileInput" class="hidden" accept="image/*" multiple>
+                <input type="file" id="fileInput" class="hidden" accept="image/*" multiple onchange="handleFileUpload(event)">
                 <label for="fileInput" class="cursor-pointer group block">
-                    <div class="mb-4 text-6xl text-red-500 group-hover:scale-110 transition-transform duration-300">
+                    <div class="mb-4 text-6xl text-red-500 group-hover:scale-110 transition-transform">
                         <i class="fas fa-cloud-upload-alt"></i>
                     </div>
                     <h2 class="text-xl font-bold">Postar Fotos na Nuvem</h2>
-                    <p class="text-sm opacity-60">As imagens ficam salvas permanentemente</p>
+                    <p class="text-sm opacity-60">Clique aqui para selecionar fotos</p>
                 </label>
-                
-                <div id="progressContainer" class="hidden mt-6">
-                    <div class="w-full bg-gray-700 rounded-full h-2">
-                        <div id="progressBar" class="bg-red-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
-                    </div>
-                </div>
             </section>
-
             <div id="photoGrid" class="grid grid-cols-2 md:grid-cols-3 gap-4 pb-20"></div>
         </main>
     </div>
@@ -112,19 +121,59 @@
         const modalContent = document.getElementById('modalContent');
         const welcomeScreen = document.getElementById('welcomeScreen');
         const appContent = document.getElementById('appContent');
-        const viewerOverlay = document.getElementById('viewerOverlay');
-        const fullImage = document.getElementById('fullImage');
-        const photoGrid = document.getElementById('photoGrid');
-        const fileInput = document.getElementById('fileInput');
+        const configMenu = document.getElementById('configMenu');
 
-        // --- AUTENTICAÇÃO ---
+        window.onload = () => {
+            const user = localStorage.getItem('currentUser');
+            if (user) loginUser(user);
+        };
+
+        // --- FUNÇÃO DE COMPARTILHAMENTO CORRIGIDA ---
+        async function shareApp() {
+            const shareData = {
+                title: 'POST foto',
+                text: 'Minha nuvem privada de fotos. Acesse a sua também!',
+                url: window.location.href 
+            };
+
+            try {
+                if (navigator.share) {
+                    await navigator.share(shareData);
+                } else {
+                    await navigator.clipboard.writeText(window.location.href);
+                    alert("Link da sua nuvem copiado para a área de transferência!");
+                }
+            } catch (err) {
+                console.log("Erro ao compartilhar:", err);
+            }
+        }
+
+        function toggleConfig() {
+            configMenu.classList.toggle('show');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.relative')) {
+                configMenu.classList.remove('show');
+            }
+        }
+
         function openModal(type) {
             modal.classList.remove('hidden');
             setTimeout(() => modal.classList.add('modal-active'), 10);
+            
             if (type === 'register') {
-                modalContent.innerHTML = `<h2 class="text-2xl font-bold mb-6 text-center">Criar Conta</h2><input type="email" id="email" placeholder="Seu e-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-white"><input type="password" id="pin" maxlength="4" placeholder="PIN de 4 dígitos" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-center text-xl tracking-widest text-white"><button onclick="handleAuth('register')" class="w-full bg-red-600 hover:bg-red-700 p-4 rounded-xl font-bold transition">CADASTRAR</button>`;
+                modalContent.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-6 text-center">Criar Conta</h2>
+                    <input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-red-500">
+                    <input type="password" id="pin" maxlength="4" placeholder="PIN (4 dígitos)" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 text-center text-xl text-white outline-none focus:border-red-500">
+                    <button onclick="handleAuth('register')" class="w-full bg-red-600 hover:bg-red-700 p-4 rounded-xl font-bold transition">CADASTRAR AGORA</button>`;
             } else {
-                modalContent.innerHTML = `<h2 class="text-2xl font-bold mb-6 text-center">Login</h2><input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-white"><input type="password" id="pin" maxlength="4" placeholder="PIN" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 outline-none focus:border-red-500 text-center text-xl text-white"><button onclick="handleAuth('login')" class="w-full bg-white text-black p-4 rounded-xl font-bold hover:bg-gray-200 transition">ENTRAR</button>`;
+                modalContent.innerHTML = `
+                    <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+                    <input type="email" id="email" placeholder="E-mail" class="w-full p-4 mb-4 rounded-xl bg-white/10 border border-white/20 text-white outline-none focus:border-red-500">
+                    <input type="password" id="pin" maxlength="4" placeholder="PIN" class="w-full p-4 mb-6 rounded-xl bg-white/10 border border-white/20 text-center text-xl text-white outline-none focus:border-red-500">
+                    <button onclick="handleAuth('login')" class="w-full bg-white text-black p-4 rounded-xl font-bold hover:bg-gray-200 transition">ENTRAR</button>`;
             }
         }
 
@@ -134,64 +183,71 @@
         }
 
         function handleAuth(mode) {
-            const email = document.getElementById('email').value.toLowerCase();
+            const email = document.getElementById('email').value.trim().toLowerCase();
             const pin = document.getElementById('pin').value;
-            if (!email.includes('@') || pin.length < 4) { alert("E-mail inválido ou PIN curto demais."); return; }
+
+            if (!email.includes('@') || pin.length < 4) {
+                alert("Preencha o e-mail corretamente e use um PIN de 4 dígitos.");
+                return;
+            }
+
             if (mode === 'register') {
-                if (localStorage.getItem(email)) { alert("E-mail já cadastrado."); } 
-                else { localStorage.setItem(email, pin); loginUser(email); }
+                if (localStorage.getItem(`user_${email}`)) {
+                    alert("Este e-mail já está cadastrado.");
+                } else {
+                    localStorage.setItem(`user_${email}`, pin);
+                    loginUser(email);
+                }
             } else {
-                if (localStorage.getItem(email) === pin) { loginUser(email); } 
-                else { alert("Dados incorretos."); }
+                if (localStorage.getItem(`user_${email}`) === pin) {
+                    loginUser(email);
+                } else {
+                    alert("E-mail ou PIN incorretos.");
+                }
             }
         }
 
         function loginUser(email) {
             localStorage.setItem('currentUser', email);
+            document.getElementById('userEmailDisplay').innerText = email;
             welcomeScreen.classList.add('hidden');
-            closeModal();
             appContent.classList.remove('hidden-app');
-            loadPhotos(); // Carrega fotos salvas ao entrar
+            closeModal();
+            loadPhotos();
         }
 
-        function logout() {
-            if(confirm("Deseja sair da sua conta?")) {
-                localStorage.removeItem('currentUser');
-                location.reload();
-            }
-        }
-
-        function deleteAccount() {
-            const email = localStorage.getItem('currentUser');
-            if (confirm(`Atenção: Deseja APAGAR a conta e todos os dados?`)) {
-                localStorage.removeItem(email);
-                localStorage.removeItem(`photos_${email}`);
-                localStorage.removeItem('currentUser');
-                location.reload();
-            }
-        }
-
-        // --- LÓGICA DE PERSISTÊNCIA DE FOTOS ---
-
-        // Carrega fotos do LocalStorage para o usuário atual
-        function loadPhotos() {
-            const email = localStorage.getItem('currentUser');
-            const savedPhotos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
-            photoGrid.innerHTML = ''; 
-            savedPhotos.forEach(photoSrc => {
-                appendPhotoToGrid(photoSrc);
+        function handleFileUpload(event) {
+            const files = event.target.files;
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const src = e.target.result;
+                    savePhotoToStorage(src);
+                    appendPhotoToGrid(src);
+                };
+                reader.readAsDataURL(file);
             });
         }
 
-        // Salva a string da imagem no LocalStorage
         function savePhotoToStorage(src) {
             const email = localStorage.getItem('currentUser');
-            const savedPhotos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
-            savedPhotos.push(src);
-            localStorage.setItem(`photos_${email}`, JSON.stringify(savedPhotos));
+            const photos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
+            photos.push(src);
+            try {
+                localStorage.setItem(`photos_${email}`, JSON.stringify(photos));
+            } catch (e) {
+                alert("Armazenamento cheio! Tente subir fotos menores.");
+            }
         }
 
-        // Adiciona visualmente a foto no Grid
+        function loadPhotos() {
+            const email = localStorage.getItem('currentUser');
+            const photos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
+            const grid = document.getElementById('photoGrid');
+            grid.innerHTML = '';
+            photos.forEach(src => appendPhotoToGrid(src));
+        }
+
         function appendPhotoToGrid(src) {
             const div = document.createElement('div');
             div.className = "relative group rounded-2xl aspect-square overflow-hidden shadow-xl border border-white/10 bg-black";
@@ -199,28 +255,46 @@
                 <img src="${src}" onclick="viewImage('${src}')" class="w-full h-full object-cover cursor-zoom-in group-hover:scale-105 transition duration-500">
                 <button onclick="deletePhoto(this, '${src}')" class="absolute top-2 right-2 bg-black/60 text-white w-8 h-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600">
                     <i class="fas fa-trash-alt text-xs"></i>
-                </button>
-            `;
-            photoGrid.prepend(div);
-        }
-
-        function deletePhoto(button, src) {
-            if(confirm("Excluir esta foto permanentemente?")) {
-                const email = localStorage.getItem('currentUser');
-                let savedPhotos = JSON.parse(localStorage.getItem(`photos_${email}`)) || [];
-                
-                // Filtra o array removendo a imagem deletada
-                savedPhotos = savedPhotos.filter(photo => photo !== src);
-                localStorage.setItem(`photos_${email}`, JSON.stringify(savedPhotos));
-                
-                button.parentElement.remove();
-            }
+                </button>`;
+            document.getElementById('photoGrid').prepend(div);
         }
 
         function viewImage(src) {
-            fullImage.src = src;
-            viewerOverlay.style.display = 'flex';
+            const overlay = document.getElementById('viewerOverlay');
+            document.getElementById('fullImage').src = src;
+            overlay.classList.remove('hidden');
         }
 
         function closeViewer() {
-            viewerOverlay.style.display = '
+            document.getElementById('viewerOverlay').classList.add('hidden');
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            appContent.classList.add('hidden-app');
+            welcomeScreen.classList.remove('hidden');
+            configMenu.classList.remove('show');
+            document.getElementById('photoGrid').innerHTML = '';
+        }
+
+        function deleteAccount() {
+            if(confirm("ATENÇÃO: Isso apagará sua conta e TODAS as fotos permanentemente. Confirmar?")) {
+                const email = localStorage.getItem('currentUser');
+                localStorage.removeItem(`user_${email}`);
+                localStorage.removeItem(`photos_${email}`);
+                logout();
+            }
+        }
+
+        function deletePhoto(btn, src) {
+            if(confirm("Excluir foto?")) {
+                const email = localStorage.getItem('currentUser');
+                let photos = JSON.parse(localStorage.getItem(`photos_${email}`));
+                photos = photos.filter(p => p !== src);
+                localStorage.setItem(`photos_${email}`, JSON.stringify(photos));
+                btn.parentElement.remove();
+            }
+        }
+    </script>
+</body>
+</html>
