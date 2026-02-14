@@ -12,6 +12,7 @@
             --surface: #1e1e1e;
             --success: #28a745;
             --danger: #dc3545;
+            --whatsapp: #25d366;
         }
 
         body {
@@ -88,18 +89,32 @@
 
         .btn-danger { background-color: var(--danger); margin-top: 10px; font-size: 12px; width: auto; padding: 5px 10px; }
 
-        /* Estilo do botão Sair */
-        .btn-sair {
-            background-color: #444;
-            color: #ff4d4d;
-            font-size: 12px;
-            padding: 5px 10px;
-            width: auto;
-            margin-left: 15px;
-            border: 1px solid #ff4d4d;
+        /* --- ESTILO DA LUPA/COMPARTILHAMENTO --- */
+        .status-bar {
+            background: #333;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--success);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
-        .btn-sair:hover { background-color: #ff4d4d; color: white; }
 
+        .btn-share {
+            background-color: var(--whatsapp);
+            width: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            padding: 10px 20px;
+        }
+        
+        .btn-share:hover { background-color: #128c7e; }
+
+        /* --- GRIDS DE VÍDEO --- */
         #video-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -115,18 +130,6 @@
         }
 
         .local-v { transform: scaleX(-1); border: 2px solid var(--primary); }
-
-        .status-bar {
-            background: #333;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 5px solid var(--success);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
     </style>
 </head>
 <body>
@@ -152,8 +155,10 @@
         <h1>Painel de Chamadas</h1>
         
         <div class="status-bar">
-            <span>Seu ID: <b id="meu-id-display" style="color: #00ff00;">...</b></span>
-            <button class="btn-sair" onclick="sair()">Sair</button>
+            <div>Seu ID de Conexão: <b id="meu-id-display" style="color: #00ff00;">...</b></div>
+            <button class="btn-share" onclick="compartilharID()">
+                <span style="font-size: 18px;">🔍</span> Compartilhar meu ID
+            </button>
         </div>
 
         <div style="margin-bottom: 30px; background: #222; padding: 20px; border-radius: 10px;">
@@ -177,6 +182,7 @@
         let peer;
         let localStream;
 
+        // VERIFICAÇÃO AO CARREGAR
         window.onload = () => {
             const salvo = localStorage.getItem('usuario_registrado');
             if (salvo) {
@@ -230,21 +236,13 @@
             });
 
             peer.on('call', (call) => {
-                call.answer(localStream);
-                call.on('stream', (remoteStream) => {
-                    document.getElementById('remote-video').srcObject = remoteStream;
-                });
+                if(confirm("Recebendo chamada! Aceitar?")) {
+                    call.answer(localStream);
+                    call.on('stream', (remoteStream) => {
+                        document.getElementById('remote-video').srcObject = remoteStream;
+                    });
+                }
             });
-        }
-
-        // Função para Sair e voltar para a tela inicial
-        function sair() {
-            if(peer) peer.destroy(); // Fecha a conexão
-            if(localStream) {
-                localStream.getTracks().forEach(track => track.stop()); // Desliga a câmera
-            }
-            // Recarrega a página para voltar ao estado inicial (Login)
-            location.reload();
         }
 
         async function iniciarMidia() {
@@ -253,7 +251,7 @@
                 document.getElementById('local-video').srcObject = localStream;
             } catch (err) {
                 console.error(err);
-                alert("Erro ao acessar câmera/microfone.");
+                alert("Erro ao acessar câmera/microfone. Verifique as permissões.");
             }
         }
 
@@ -266,6 +264,29 @@
             call.on('stream', (remoteStream) => {
                 document.getElementById('remote-video').srcObject = remoteStream;
             });
+        }
+
+        // --- NOVA FUNÇÃO DE COMPARTILHAMENTO ---
+        function compartilharID() {
+            const meuId = document.getElementById('meu-id-display').innerText;
+            if (meuId === "...") return alert("Aguarde a geração do ID!");
+
+            const textoMsg = `Olá! Este é meu ID de conexão no Web VD 3.0: *${meuId}* \nCole este ID no seu painel para me ligar!`;
+
+            // Tenta usar a API de compartilhamento do celular
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Meu ID Web VD',
+                    text: textoMsg,
+                    url: window.location.href
+                }).catch(console.error);
+            } else {
+                // Fallback para Computador: Copia e abre WhatsApp
+                navigator.clipboard.writeText(meuId).then(() => {
+                    alert("ID copiado para a área de transferência! Abrindo WhatsApp...");
+                    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(textoMsg)}`, '_blank');
+                });
+            }
         }
 
         function resetarCadastro() {
