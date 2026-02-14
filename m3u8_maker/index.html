@@ -48,7 +48,7 @@
 
         /* --- INTERFACE PRINCIPAL --- */
         #app-ui {
-            display: none; /* Escondido até o login ter sucesso */
+            display: none; 
             width: 100%;
             max-width: 1000px;
             padding: 20px;
@@ -87,6 +87,18 @@
         button:hover { background-color: #0056b3; }
 
         .btn-danger { background-color: var(--danger); margin-top: 10px; font-size: 12px; width: auto; padding: 5px 10px; }
+        
+        /* Estilo do botão Sair na interface */
+        .btn-logout {
+            background-color: transparent;
+            color: #ff4d4d;
+            border: 1px solid #ff4d4d;
+            margin-top: 10px;
+            padding: 5px 20px;
+            width: auto;
+            font-size: 14px;
+        }
+        .btn-logout:hover { background-color: #ff4d4d; color: white; }
 
         #video-grid {
             display: grid;
@@ -108,7 +120,7 @@
             background: #333;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
             border-left: 5px solid var(--success);
         }
     </style>
@@ -138,8 +150,9 @@
         <div class="status-bar">
             Seu ID de Conexão: <b id="meu-id-display" style="color: #00ff00;">...</b>
         </div>
+        <button class="btn-logout" onclick="deslogar()">Sair da Conta</button>
 
-        <div style="margin-bottom: 30px; background: #222; padding: 20px; border-radius: 10px;">
+        <div style="margin-top: 30px; background: #222; padding: 20px; border-radius: 10px;">
             <input type="text" id="remote-id" placeholder="ID do amigo (Ex: 55889...)">
             <button onclick="iniciarChamada()" style="width: auto;">Ligar Agora</button>
         </div>
@@ -160,13 +173,12 @@
         let peer;
         let localStream;
 
-        // VERIFICAÇÃO AO CARREGAR: Bloqueia novos cadastros se já houver um.
         window.onload = () => {
             const salvo = localStorage.getItem('usuario_registrado');
             if (salvo) {
                 const inputFone = document.getElementById('user-phone');
                 inputFone.value = salvo;
-                inputFone.disabled = true; // Impede mudar o número
+                inputFone.disabled = true; 
                 document.getElementById('auth-msg').innerText = "Bem-vindo de volta!";
                 document.getElementById('auth-msg').style.color = "#00ff00";
                 document.getElementById('area-reset').style.display = "block";
@@ -179,37 +191,29 @@
             const senha = document.getElementById('user-pass').value;
             const cadastroSalvo = localStorage.getItem('usuario_registrado');
 
-            // 1. Validação de preenchimento
             if (fone.length < 10) {
                 alert("Por favor, insira o número com DDD.");
                 return;
             }
 
-            // 2. Trava de Cadastro Único
             if (cadastroSalvo && fone !== cadastroSalvo) {
                 alert("ERRO: Este navegador já está vinculado ao número " + cadastroSalvo);
                 return;
             }
 
-            // 3. Validação de senha fixa
             if (senha !== "55") {
                 alert("Senha incorreta! Use a senha padrão.");
                 return;
             }
 
-            // 4. Iniciar PeerJS
             const idOficial = "55" + fone;
             peer = new Peer(idOficial);
 
             peer.on('open', (id) => {
-                // Salva o cadastro permanentemente
                 localStorage.setItem('usuario_registrado', fone);
-                
-                // Troca de telas
                 document.getElementById('auth-overlay').style.display = 'none';
                 document.getElementById('app-ui').style.display = 'block';
                 document.getElementById('meu-id-display').innerText = id;
-                
                 iniciarMidia();
             });
 
@@ -221,7 +225,6 @@
                 }
             });
 
-            // Escutar chamadas recebidas
             peer.on('call', (call) => {
                 call.answer(localStream);
                 call.on('stream', (remoteStream) => {
@@ -249,6 +252,24 @@
             call.on('stream', (remoteStream) => {
                 document.getElementById('remote-video').srcObject = remoteStream;
             });
+        }
+
+        // FUNÇÃO PARA SAIR (LOGOUT)
+        function deslogar() {
+            if(confirm("Deseja realmente sair da conta?")) {
+                // 1. Para a câmera e microfone
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                }
+                // 2. Destrói a conexão do Peer
+                if (peer) {
+                    peer.destroy();
+                }
+                // 3. Reseta a interface
+                document.getElementById('app-ui').style.display = 'none';
+                document.getElementById('auth-overlay').style.display = 'flex';
+                // Obs: O localStorage não é apagado aqui, para que o "Cadastro Único" continue valendo.
+            }
         }
 
         function resetarCadastro() {
