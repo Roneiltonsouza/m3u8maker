@@ -3,269 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web VD 3.0 - Cadastro Único</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>Vizu.html - Editor Interativo</title>
     <style>
         :root {
-            --primary: #007bff;
-            --dark: #121212;
-            --surface: #1e1e1e;
-            --success: #28a745;
-            --danger: #dc3545;
-            --warning: #ffc107;
+            --primary: #6200ee;
+            --bg: #f5f5f7;
+            --dark: #1e1e1e;
+            --whatsapp: #25d366;
+            --download: #ff9800; /* Cor laranja para o botão de baixar */
         }
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--dark);
-            color: white;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; background: var(--bg); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
 
-        /* --- TELA DE LOGIN --- */
-        #auth-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .auth-card {
-            background: var(--surface);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        /* --- INTERFACE PRINCIPAL --- */
-        #app-ui {
-            display: none; 
-            width: 100%;
-            max-width: 1000px;
-            padding: 20px;
-            text-align: center;
-        }
-
-        input {
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #444;
-            background: #222;
-            color: white;
-            width: 85%;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        button {
-            padding: 12px 25px;
-            border-radius: 8px;
-            border: none;
-            background-color: var(--primary);
-            color: white;
-            cursor: pointer;
+        /* Header e Abas */
+        header { background: var(--dark); color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .tabs { display: flex; gap: 5px; background: #333; padding: 5px 10px 0; }
+        .tab { padding: 10px 20px; border: none; background: #444; color: #ccc; cursor: pointer; border-radius: 5px 5px 0 0; }
+        .tab.active { background: var(--bg); color: var(--dark); font-weight: bold; }
+        
+        /* Estilo da aba de compartilhar */
+        .tab.share-tab { 
+            background: var(--primary); 
+            color: white; 
+            margin-left: 10px;
+            border-radius: 5px 5px 0 0;
             font-weight: bold;
-            transition: 0.3s;
-            margin: 5px;
+        }
+        .tab.share-tab:hover { background: #4a00b5; }
+
+        /* Área de Edição */
+        .main-container { display: flex; flex: 1; height: calc(100vh - 110px); }
+        .editor-side { width: 50%; display: flex; flex-direction: column; border-right: 2px solid #ddd; }
+        
+        textarea { 
+            flex: 1; border: none; padding: 15px; font-family: 'Consolas', monospace; 
+            font-size: 14px; outline: none; resize: none; background: #fafafa;
         }
 
-        button:hover { opacity: 0.8; }
+        /* Preview Side */
+        .preview-side { width: 50%; background: white; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; background: white; }
 
-        /* NOVO: Estilo dos controles de mídia */
-        .controls {
-            margin: 15px 0;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
+        /* Controles */
+        .toolbar { padding: 10px; background: #eee; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        button { padding: 8px 15px; cursor: pointer; border: none; border-radius: 4px; transition: 0.3s; font-weight: 500; }
+        
+        .btn-run { background: #00c853; color: white; }
+        .btn-copy { background: #2196f3; color: white; }
+        .btn-download { background: var(--download); color: white; }
+        .btn-paste { background: #757575; color: white; }
+
+        button:hover { opacity: 0.9; transform: translateY(-1px); }
+        
+        #url-display { font-size: 12px; color: #666; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 250px; }
+
+        /* Botão WhatsApp Flutuante */
+        .whatsapp-float {
+            position: fixed; bottom: 20px; right: 20px;
+            background: var(--whatsapp); color: white; width: 60px; height: 60px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; text-decoration: none;
+            z-index: 999; transition: transform 0.2s;
         }
+        .whatsapp-float:hover { transform: scale(1.1); }
 
-        .btn-toggle { background-color: #444; width: auto; font-size: 14px; }
-        .active { background-color: var(--success); }
-        .off { background-color: var(--danger); }
-
-        #video-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        video {
-            width: 100%;
-            border-radius: 12px;
-            background: #000;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-        }
-
-        .local-v { transform: scaleX(-1); border: 2px solid var(--primary); }
-
-        .status-bar {
-            background: #333;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 5px solid var(--success);
-        }
+        #status-bar { background: #333; color: #00ff00; font-size: 12px; padding: 5px 20px; }
     </style>
 </head>
 <body>
 
-    <div id="auth-overlay">
-        <div class="auth-card">
-            <h2>Web VD 3.0</h2>
-            <p id="auth-msg">Registre seu número único</p>
-            <input type="text" id="user-phone" placeholder="DDD + Número">
-            <input type="password" id="user-pass" placeholder="Senha (Sempre 55)">
-            <button onclick="fazerLogin()">Acessar Sistema</button>
-            <div id="area-reset" style="display:none; margin-top: 20px; border-top: 1px solid #444; padding-top: 10px;">
-                <button style="background:none; color:#888; font-size:10px;" onclick="resetarCadastro()">Apagar Cadastro</button>
-            </div>
-        </div>
-    </div>
+<header>
+    <h1>Vizu<span style="color:var(--primary)">.HTML</span></h1>
+    <div id="url-display">Página: vizu.html</div>
+</header>
 
-    <div id="app-ui">
-        <h1>Painel de Chamadas</h1>
+<div class="tabs">
+    <button class="tab active">index.html</button>
+    <button class="tab share-tab" onclick="shareSite()">📤 Compartilhar Editor</button>
+</div>
+
+<div class="toolbar">
+    <button class="btn-run" onclick="generateProject()">▶ Gerar Projeto</button>
+    <button class="btn-copy" onclick="copyCode()">📋 Copiar Código</button>
+    <button class="btn-download" onclick="downloadCode()">💾 Baixar HTML</button>
+    <button class="btn-paste" onclick="pasteCode()">📥 Colar</button>
+</div>
+
+<div class="main-container">
+    <div class="editor-side">
+        <textarea id="html-code" placeholder="Digite seu código HTML/CSS/JS aqui..." oninput="autoCheck()"></textarea>
+    </div>
+    <div class="preview-side">
+        <iframe id="preview-window"></iframe>
+    </div>
+</div>
+
+<div id="status-bar">Gerenciador: Sistema pronto para criar.</div>
+
+<a href="#" class="whatsapp-float" onclick="shareSite()" title="Compartilhar link do Vizu.html">
+    <span style="font-size: 28px;">🔗</span>
+</a>
+
+<script>
+    const codeArea = document.getElementById('html-code');
+    const previewWin = document.getElementById('preview-window');
+    const statusBar = document.getElementById('status-bar');
+
+    // 1. Gera o preview do código digitado
+    function generateProject() {
+        try {
+            const code = codeArea.value;
+            const blob = new Blob([code], { type: 'text/html' });
+            const virtualURL = URL.createObjectURL(blob);
+            previewWin.src = virtualURL;
+            
+            statusBar.innerText = "Gerenciador: Projeto renderizado com sucesso!";
+            statusBar.style.color = "#00ff00";
+        } catch (err) {
+            statusBar.innerText = "Gerenciador: Erro ao gerar preview.";
+            statusBar.style.color = "#ff4444";
+        }
+    }
+
+    // 2. Função para Baixar o Arquivo HTML
+    function downloadCode() {
+        const code = codeArea.value;
+        if (!code) {
+            alert("O editor está vazio! Digite algo antes de baixar.");
+            return;
+        }
+
+        const blob = new Blob([code], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
         
-        <div class="status-bar">
-            Seu ID: <b id="meu-id-display" style="color: #00ff00;">...</b>
-        </div>
+        a.href = url;
+        a.download = 'projeto_vizu.html'; // Nome do arquivo ao baixar
+        document.body.appendChild(a);
+        a.click();
+        
+        // Limpeza do link temporário
+        setTimeout(() => {
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }, 0);
 
-        <div style="background: #222; padding: 20px; border-radius: 10px;">
-            <input type="text" id="remote-id" placeholder="ID do amigo (Ex: 55889...)">
-            
-            <div class="controls">
-                <button id="btn-cam" class="btn-toggle off" onclick="toggleCamera()">📷 Ligar Câmera</button>
-                <button id="btn-mic" class="btn-toggle off" onclick="toggleMic()">🎤 Ligar Microfone</button>
-                <button onclick="iniciarChamada()" style="background-color: var(--success);">📞 Iniciar Chamada</button>
-            </div>
-        </div>
+        statusBar.innerText = "Gerenciador: Download concluído!";
+        statusBar.style.color = "#00ff00";
+    }
 
-        <div id="video-grid">
-            <div>
-                <p>Minha Câmera</p>
-                <video id="local-video" class="local-v" autoplay muted playsinline></video>
-            </div>
-            <div>
-                <p>Vídeo Remoto</p>
-                <video id="remote-video" autoplay playsinline></video>
-            </div>
-        </div>
-    </div>
+    // 3. Compartilha a URL do SITE Vizu.html
+    function shareSite() {
+        const siteURL = window.location.href;
+        const message = encodeURIComponent(`Ei! Conheça o Vizu.HTML, um editor de código interativo incrível: ${siteURL}`);
+        window.open(`https://wa.me/?text=${message}`, '_blank');
+        
+        statusBar.innerText = "Gerenciador: Link do site enviado para o WhatsApp!";
+        statusBar.style.color = "#2196f3";
+    }
 
-    <script>
-        let peer;
-        let localStream;
-        let camAtiva = false;
-        let micAtivo = false;
-
-        window.onload = () => {
-            const salvo = localStorage.getItem('usuario_registrado');
-            if (salvo) {
-                document.getElementById('user-phone').value = salvo;
-                document.getElementById('user-phone').disabled = true;
-                document.getElementById('area-reset').style.display = "block";
-            }
-        };
-
-        async function fazerLogin() {
-            const fone = document.getElementById('user-phone').value.trim();
-            const senha = document.getElementById('user-pass').value;
-
-            if (senha !== "55") return alert("Senha incorreta!");
-            
-            const idOficial = "55" + fone;
-            peer = new Peer(idOficial);
-
-            peer.on('open', (id) => {
-                localStorage.setItem('usuario_registrado', fone);
-                document.getElementById('auth-overlay').style.display = 'none';
-                document.getElementById('app-ui').style.display = 'block';
-                document.getElementById('meu-id-display').innerText = id;
-            });
-
-            // Responder Chamada
-            peer.on('call', (call) => {
-                if(!localStream) {
-                    alert("Chamada recebida! Ativando câmera...");
-                }
-                // Garante que a mídia exista antes de atender
-                ativarMidiaBase().then(() => {
-                    call.answer(localStream);
-                    call.on('stream', (remoteStream) => {
-                        document.getElementById('remote-video').srcObject = remoteStream;
-                    });
-                });
-            });
+    // Funções auxiliares
+    function autoCheck() {
+        const code = codeArea.value;
+        if(code.includes("<script>") && !code.includes("<\/script>")) {
+            statusBar.innerText = "Dica: Lembre-se de fechar a tag <script>.";
+            statusBar.style.color = "#ffbb33";
         }
+    }
 
-        // NOVO: Função para solicitar permissão e gerenciar câmera
-        async function ativarMidiaBase() {
-            if (!localStream) {
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                    document.getElementById('local-video').srcObject = localStream;
-                    
-                    // Começa tudo desligado por padrão (opcional)
-                    localStream.getVideoTracks()[0].enabled = camAtiva;
-                    localStream.getAudioTracks()[0].enabled = micAtivo;
-                } catch (err) {
-                    alert("Permita o acesso à câmera e microfone!");
-                }
-            }
+    function copyCode() {
+        codeArea.select();
+        document.execCommand('copy');
+        statusBar.innerText = "Gerenciador: Código copiado para a área de transferência!";
+        statusBar.style.color = "#2196f3";
+    }
+
+    async function pasteCode() {
+        try {
+            const text = await navigator.clipboard.readText();
+            codeArea.value = text;
+            statusBar.innerText = "Gerenciador: Código colado com sucesso!";
+            statusBar.style.color = "#00ff00";
+        } catch(e) {
+            alert("Erro ao colar. Permita o acesso à área de transferência no seu navegador.");
         }
+    }
+</script>
 
-        async function toggleCamera() {
-            await ativarMidiaBase();
-            camAtiva = !camAtiva;
-            localStream.getVideoTracks()[0].enabled = camAtiva;
-            
-            const btn = document.getElementById('btn-cam');
-            btn.innerText = camAtiva ? "📷 Desligar Câmera" : "📷 Ligar Câmera";
-            btn.className = camAtiva ? "btn-toggle active" : "btn-toggle off";
-        }
-
-        async function toggleMic() {
-            await ativarMidiaBase();
-            micAtivo = !micAtivo;
-            localStream.getAudioTracks()[0].enabled = micAtivo;
-
-            const btn = document.getElementById('btn-mic');
-            btn.innerText = micAtivo ? "🎤 Desligar Microfone" : "🎤 Ligar Microfone";
-            btn.className = micAtivo ? "btn-toggle active" : "btn-toggle off";
-        }
-
-        function iniciarChamada() {
-            const destId = document.getElementById('remote-id').value.trim();
-            if (!destId) return alert("Insira o ID de destino!");
-            
-            if (!localStream || !camAtiva) {
-                alert("Ative sua câmera antes de ligar!");
-                return;
-            }
-
-            const call = peer.call(destId, localStream);
-            call.on('stream', (remoteStream) => {
-                document.getElementById('remote-video').srcObject = remoteStream;
-            });
-        }
-
-        function resetarCadastro() {
-            if(confirm("Deseja apagar o registro?")) {
-                localStorage.removeItem('usuario_registrado');
-                location.reload();
-            }
-        }
-    </script>
 </body>
 </html>
