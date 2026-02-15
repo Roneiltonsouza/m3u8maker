@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web VD 3.0 - Cadastro Ãšnico</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <style>
+        :root {
+            --primary: #007bff;
+            --dark: #121212;
+            --surface: #1e1e1e;
+            --success: #28a745;
+            --danger: #dc3545;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--dark);
+            color: white;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- TELA DE LOGIN --- */
+        #auth-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .auth-card {
+            background: var(--surface);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        /* --- INTERFACE PRINCIPAL --- */
+        #app-ui {
+            display: none; /* Escondido atÃ© o login ter sucesso */
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        input {
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            background: #222;
+            color: white;
+            width: 85%;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        input:disabled {
+            background: #333;
+            color: #888;
+            cursor: not-allowed;
+        }
+
+        button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--primary);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 90%;
+        }
+
+        button:hover { background-color: #0056b3; }
+
+        .btn-danger { background-color: var(--danger); margin-top: 10px; font-size: 12px; width: auto; padding: 5px 10px; }
+
+        #video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        video {
+            width: 100%;
+            border-radius: 12px;
+            background: #000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .local-v { transform: scaleX(-1); border: 2px solid var(--primary); }
+
+        .status-bar {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 5px solid var(--success);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="auth-overlay">
+        <div class="auth-card">
+            <h2>Web VD 3.0</h2>
+            <p id="auth-msg">Registre seu nÃºmero Ãºnico</p>
+            
+            <input type="text" id="user-phone" placeholder="DDD + NÃºmero (Ex: 88988088578)">
+            <input type="password" id="user-pass" placeholder="Senha (Sempre 55)">
+            
+            <button onclick="fazerLogin()">Acessar Sistema</button>
+
+            <div id="area-reset" style="display:none; margin-top: 20px; border-top: 1px solid #444; padding-top: 10px;">
+                <p style="font-size: 11px; color: #888;">Este dispositivo jÃ¡ possui um cadastro.</p>
+                <button class="btn-danger" onclick="resetarCadastro()">Apagar Cadastro Atual</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-ui">
+        <h1>Painel de Chamadas</h1>
+        
+        <div class="status-bar">
+            Seu ID de ConexÃ£o: <b id="meu-id-display" style="color: #00ff00;">...</b>
+        </div>
+
+        <div style="margin-bottom: 30px; background: #222; padding: 20px; border-radius: 10px;">
+            <input type="text" id="remote-id" placeholder="ID do amigo (Ex: 55889...)">
+            <button onclick="iniciarChamada()" style="width: auto;">Ligar Agora</button>
+        </div>
+
+        <div id="video-grid">
+            <div>
+                <p>Minha CÃ¢mera</p>
+                <video id="local-video" class="local-v" autoplay muted playsinline></video>
+            </div>
+            <div>
+                <p>VÃ­deo Remoto</p>
+                <video id="remote-video" autoplay playsinline></video>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let peer;
+        let localStream;
+
+        // VERIFICAÃ‡ÃƒO AO CARREGAR: Bloqueia novos cadastros se jÃ¡ houver um.
+        window.onload = () => {
+            const salvo = localStorage.getItem('usuario_registrado');
+            if (salvo) {
+                const inputFone = document.getElementById('user-phone');
+                inputFone.value = salvo;
+                inputFone.disabled = true; // Impede mudar o nÃºmero
+                document.getElementById('auth-msg').innerText = "Bem-vindo de volta!";
+                document.getElementById('auth-msg').style.color = "#00ff00";
+                document.getElementById('area-reset').style.display = "block";
+            }
+        };
+
+        async function fazerLogin() {
+            const foneInput = document.getElementById('user-phone');
+            const fone = foneInput.value.trim();
+            const senha = document.getElementById('user-pass').value;
+            const cadastroSalvo = localStorage.getItem('usuario_registrado');
+
+            // 1. ValidaÃ§Ã£o de preenchimento
+            if (fone.length < 10) {
+                alert("Por favor, insira o nÃºmero com DDD.");
+                return;
+            }
+
+            // 2. Trava de Cadastro Ãšnico
+            if (cadastroSalvo && fone !== cadastroSalvo) {
+                alert("ERRO: Este navegador jÃ¡ estÃ¡ vinculado ao nÃºmero " + cadastroSalvo);
+                return;
+            }
+
+            // 3. ValidaÃ§Ã£o de senha fixa
+            if (senha !== "55") {
+                alert("Senha incorreta! Use a senha padrÃ£o.");
+                return;
+            }
+
+            // 4. Iniciar PeerJS
+            const idOficial = "55" + fone;
+            peer = new Peer(idOficial);
+
+            peer.on('open', (id) => {
+                // Salva o cadastro permanentemente
+                localStorage.setItem('usuario_registrado', fone);
+                
+                // Troca de telas
+                document.getElementById('auth-overlay').style.display = 'none';
+                document.getElementById('app-ui').style.display = 'block';
+                document.getElementById('meu-id-display').innerText = id;
+                
+                iniciarMidia();
+            });
+
+            peer.on('error', (err) => {
+                if(err.type === 'unavailable-id') {
+                    alert("Este nÃºmero jÃ¡ estÃ¡ conectado em outra aba!");
+                } else {
+                    alert("Erro de conexÃ£o: " + err.type);
+                }
+            });
+
+            // Escutar chamadas recebidas
+            peer.on('call', (call) => {
+                call.answer(localStream);
+                call.on('stream', (remoteStream) => {
+                    document.getElementById('remote-video').srcObject = remoteStream;
+                });
+            });
+        }
+
+        async function iniciarMidia() {
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                document.getElementById('local-video').srcObject = localStream;
+            } catch (err) {
+                console.error(err);
+                alert("Erro ao acessar cÃ¢mera/microfone.");
+            }
+        }
+
+        function iniciarChamada() {
+            const destId = document.getElementById('remote-id').value.trim();
+            if (!destId) return alert("Insira o ID de destino!");
+            if (!localStream) return alert("CÃ¢mera nÃ£o iniciada.");
+
+            const call = peer.call(destId, localStream);
+            call.on('stream', (remoteStream) => {
+                document.getElementById('remote-video').srcObject = remoteStream;
+            });
+        }
+
+        function resetarCadastro() {
+            if(confirm("Isso apagarÃ¡ o vÃ­nculo deste nÃºmero com este navegador. Continuar?")) {
+                localStorage.removeItem('usuario_registrado');
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>
