@@ -3,202 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vizu.html - Compact Edition</title>
+    <title>Vizu.html - Pro Edition</title>
     <style>
         :root {
             --bg-dark: #000000;
             --accent-red: #ff0000;
-            --gradient: linear-gradient(180deg, #000000 0%, #330000 100%);
+            --gray-border: #333;
+            --sidebar-closed: 40px;
+            --sidebar-open: 350px;
         }
 
         body { 
             font-family: 'Segoe UI', sans-serif; 
             margin: 0; 
-            background: var(--bg-dark); 
+            background: #050505; 
             color: white;
             display: flex; 
-            flex-direction: column; 
             height: 100vh; 
             overflow: hidden; 
         }
 
-        header { 
-            background: var(--gradient); 
-            padding: 8px 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 2px solid var(--accent-red);
-            z-index: 100;
-        }
-
-        h1 { margin: 0; font-size: 16px; letter-spacing: 1px; }
-        .logo-red { color: var(--accent-red); text-shadow: 0 0 8px var(--accent-red); }
-
-        .toolbar { 
-            padding: 5px 10px; 
-            background: #111; 
-            border-bottom: 1px solid #222; 
-            display: flex; 
-            gap: 8px; 
-            align-items: center; 
-            z-index: 100;
-            overflow-x: auto;
-        }
-        
-        button { 
-            padding: 6px 10px; 
-            cursor: pointer; 
-            border: 1px solid #444; 
-            border-radius: 4px; 
-            font-weight: bold; 
-            transition: 0.2s; 
-            font-size: 10px; 
-            text-transform: uppercase;
-            color: white;
-            background: #1a1a1a;
-            white-space: nowrap;
-        }
-
-        .btn-run { 
-            background: var(--accent-red); 
-            height: 35px; 
-            min-width: 80px; 
-            border: none;
-            box-shadow: 0 0 10px rgba(255, 0, 0, 0.3);
-        }
-
-        .main-container { display: flex; flex: 1; overflow: hidden; position: relative; }
-        
-        /* EDITOR REDUZIDO PARA 30% */
-        .editor-side { 
-            width: 30%; 
-            display: flex; 
-            flex-direction: column; 
-            transition: 0.4s ease;
-            border-right: 1px solid #222;
-        }
-        
-        /* PREVIEW AUMENTADO PARA 70% */
-        .preview-side { 
-            width: 70%; 
-            background: #0a0a0a; 
-            transition: 0.4s ease;
+        /* BARRA LATERAL (ABABA RETRÁTIL) */
+        .sidebar-container { 
+            width: var(--sidebar-closed);
+            background: #000;
+            border-right: 1px solid var(--accent-red);
+            display: flex;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
+            z-index: 100;
+        }
+
+        /* Classe que será adicionada via JS */
+        .sidebar-container.is-open { 
+            width: var(--sidebar-open); 
+        }
+
+        .editor-wrapper {
+            flex: 1;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
         }
 
-        .expand-tab {
-            position: absolute;
-            left: -12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: var(--accent-red);
-            width: 24px;
-            height: 50px;
-            border-radius: 6px;
+        .is-open .editor-wrapper {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        textarea { 
+            flex: 1; border: none; padding: 20px; 
+            font-family: 'Consolas', monospace; 
+            font-size: 13px; outline: none; resize: none; 
+            background: transparent; color: #ff4d4d;
+            width: 100%; box-sizing: border-box;
+        }
+
+        /* BOTÃO DE ABRIR/FECHAR */
+        .toggle-tab {
+            width: 40px;
+            height: 100%;
+            background: #0a0a0a;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 1000;
-            box-shadow: -2px 0 10px rgba(0,0,0,0.5);
-        }
-
-        .expand-tab::after {
-            content: '↔';
+            color: var(--accent-red);
             font-weight: bold;
-            font-size: 16px;
+            transition: 0.3s;
+            border-left: 1px solid #222;
         }
 
-        .frame-container {
+        .toggle-tab:hover { background: #111; }
+
+        /* ÁREA PRINCIPAL */
+        .main-container {
             flex: 1;
-            background: #fff;
-            margin: 2px;
-            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        header {
+            background: #000;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--accent-red);
+        }
+
+        .logo { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
+        .logo span { color: var(--accent-red); text-shadow: 0 0 15px var(--accent-red); }
+
+        .monitor-box {
+            background: #111; color: #666;
+            padding: 5px 15px; font-size: 12px;
+            border: 1px solid #222;
+        }
+
+        .toolbar {
+            background: #111; padding: 15px 20px;
+            display: flex; gap: 12px; overflow-x: auto;
+        }
+
+        button {
+            padding: 10px 20px; border-radius: 8px;
+            font-weight: bold; font-size: 12px;
+            cursor: pointer; transition: 0.2s;
+            border: 1px solid var(--gray-border);
+            background: #1a1a1a; color: white;
+            white-space: nowrap;
+        }
+
+        .btn-run { background: var(--accent-red); border: none; }
+        .btn-run:hover { box-shadow: 0 0 15px rgba(255, 0, 0, 0.4); }
+
+        .preview-area {
+            flex: 1; display: flex;
+            justify-content: center; align-items: center;
+            background: radial-gradient(circle, #151515 0%, #000 100%);
+        }
+
+        .square-screen {
+            width: min(70vh, 90%);
+            height: min(70vh, 90%);
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
             overflow: hidden;
-            position: relative;
         }
 
-        iframe { width: 100%; height: 100%; border: none; }
-
-        /* ESTADO EXPANDIDO (Oculta o editor totalmente) */
-        .expanded .editor-side { width: 0%; opacity: 0; pointer-events: none; }
-        .expanded .preview-side { width: 100%; }
-        .expanded .expand-tab { left: 5px; background: #333; }
-        .expanded .expand-tab::after { content: '←'; }
-
-        textarea { 
-            flex: 1; border: none; padding: 10px; 
-            font-family: 'Consolas', monospace; 
-            font-size: 12px; outline: none; resize: none; 
-            background: #050505; color: #ff4d4d;
-        }
-
-        #status-bar { background: #000; color: #555; font-size: 9px; padding: 3px 15px; border-top: 1px solid #111; }
+        iframe { width: 100%; height: 100%; border: none; background: transparent; }
     </style>
 </head>
 <body>
 
-<header>
-    <h1>VIZU<span class="logo-red">.HTML</span></h1>
-    <div id="status-bar">Editor Reduzido</div>
-</header>
-
-<div class="toolbar">
-    <button class="btn-run" onclick="updatePreview()">▶ RODAR</button>
-    <button onclick="copyText()">COPIAR</button>
-    <button onclick="clearAll()">LIMPAR</button>
-    <button style="color: #0084ff;" onclick="downloadFile()">SALVAR</button>
+<div class="sidebar-container" id="sidebar">
+    <div class="editor-wrapper">
+        <textarea id="code-editor" spellcheck="false" placeholder="Cole o código aqui..."></textarea>
+    </div>
+    <div class="toggle-tab" onclick="toggleSidebar()" id="tab-btn">
+        <span>&lt;</span>
+    </div>
 </div>
 
-<div class="main-container" id="main-wrapper">
-    <div class="editor-side">
-        <textarea id="code-editor" spellcheck="false" placeholder="Código aqui...">
-<h2 style="text-align:center; color:red; font-family:sans-serif;">
-  Editor Compacto Ativo
-</h2>
-<p style="text-align:center; font-family: sans-serif; color: #333;">
-  A tela de código agora ocupa apenas 30%.
-</p></textarea>
+<div class="main-container">
+    <header>
+        <div class="logo">VIZU<span>.HTML</span></div>
+        <div class="monitor-box" id="status-text">Monitorando...</div>
+    </header>
+
+    <div class="toolbar">
+        <button class="btn-run" onclick="updatePreview()">▶ RODAR (CTRL+ENTER)</button>
+        <button onclick="copyText()">COPIAR</button>
+        <button onclick="clearAll()">LIMPAR</button>
+        <button style="color: #0084ff;" onclick="downloadFile()">SALVAR</button>
     </div>
 
-    <div class="preview-side">
-        <div class="expand-tab" onclick="toggleExpand()" title="Expandir/Recolher"></div>
-        <div class="frame-container">
-            <iframe id="preview-frame" sandbox="allow-scripts allow-modals allow-same-origin"></iframe>
+    <div class="preview-area">
+        <div class="square-screen">
+            <iframe id="preview-frame"></iframe>
         </div>
     </div>
 </div>
 
 <script>
+    const sidebar = document.getElementById('sidebar');
+    const tabBtn = document.getElementById('tab-btn');
     const editor = document.getElementById('code-editor');
     const iframe = document.getElementById('preview-frame');
-    const wrapper = document.getElementById('main-wrapper');
-    const status = document.getElementById('status-bar');
+    const status = document.getElementById('status-text');
+
+    // Inicialização do código
+    editor.value = `<div style="height:100%; display:flex; align-items:center; justify-content:center; flex-direction:column; color:white; font-family:sans-serif; text-align:center; padding:20px;">
+  <h2 style="color:red; text-shadow: 0 0 10px red;">Editor Oculto</h2>
+  <p style="opacity:0.6;">Clique na aba vermelha à esquerda para abrir o código.</p>
+</div>`;
+
+    function toggleSidebar() {
+        const isOpen = sidebar.classList.toggle('is-open');
+        tabBtn.querySelector('span').innerText = isOpen ? '>' : '<';
+        
+        // Foca no editor automaticamente ao abrir
+        if(isOpen) setTimeout(() => editor.focus(), 400);
+    }
 
     function updatePreview() {
         const code = editor.value;
-        const head = `<meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;}</style>`;
+        const head = `<meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0; background:transparent;}</style>`;
         iframe.srcdoc = head + code;
-        status.innerText = "Código atualizado!";
-        setTimeout(() => { status.innerText = "Monitorando..."; }, 1500);
-    }
-
-    function toggleExpand() {
-        wrapper.classList.toggle('expanded');
-        status.innerText = wrapper.classList.contains('expanded') ? "Tela Cheia" : "Editor 30%";
+        
+        status.innerText = "Atualizado!";
+        status.style.color = "#ff0000";
+        setTimeout(() => { 
+            status.innerText = "Monitorando..."; 
+            status.style.color = "#666";
+        }, 2000);
     }
 
     function copyText() {
         editor.select();
         document.execCommand('copy');
-        alert("Copiado!");
+        status.innerText = "Copiado!";
     }
 
     function clearAll() {
-        if(confirm("Limpar tudo?")) {
+        if(confirm("Deseja limpar o código?")) {
             editor.value = "";
             updatePreview();
         }
@@ -208,9 +223,13 @@
         const blob = new Blob([editor.value], {type: "text/html"});
         const a = document.createElement("a");
         a.href = URL.createObjectURL(blob);
-        a.download = "projeto.html";
+        a.download = "projeto_vizu.html";
         a.click();
     }
+
+    editor.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') updatePreview();
+    });
 
     updatePreview();
 </script>
